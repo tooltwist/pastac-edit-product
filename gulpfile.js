@@ -118,7 +118,7 @@ gulp.task('sassdoc', function () {
       crowdhound: 'Crowdhound.io',
       teaservice: 'TEAservice.io',
     },
-    //basePath: 'https://github.com/tooltwist/pastac-edit-supplier/tree/master/src',
+    //basePath: 'https://github.com/tooltwist/pastac-edit-product/tree/master/src',
     theme: 'flippant'
   };
 
@@ -177,17 +177,17 @@ gulp.task('serve', function() {
   browserSync.init({
       server: {
         baseDir: '../..',
-        // index: "bower_components/pastac-edit-supplier/test/index.html",
+        // index: "bower_components/pastac-edit-product/test/index.html",
         middleware: [{
           route: "/",
           handle: (req, res, next) => {
-            res.writeHead(302,  { 'Location': '/bower_components/pastac-edit-supplier/test/test-add-supplier.html' })
+            res.writeHead(302,  { 'Location': '/bower_components/pastac-edit-product/test/test-edit-product.html' })
             res.end()
             next()
           }
         }]
       },
-      port: 3030,
+      port: 3031,
       //reloadDelay: 200 // Give the server time to pick up the new files.
   });
   return gulp

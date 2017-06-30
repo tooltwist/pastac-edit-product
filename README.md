@@ -4,7 +4,8 @@ This module is treated as a standard Angular 1 component. To use it on an Angula
 1. Download the component into your project
 
     ```shell
-    $ bower install pastac-edit-supplier --save  
+    $ bower install pastac-edit-product --save  
+    $ bower install bootstrap-toggle --save  
     ```
 
 1. Include the component in your page
@@ -13,13 +14,13 @@ This module is treated as a standard Angular 1 component. To use it on an Angula
     script(src="bower_components/jquery/dist/jquery.js" type="text/javascript")  
     script(src="bower_components/angular/angular.min.js")  
     script(src="bower_components/bootstrap/dist/js/bootstrap.js" type="text/javascript")  
-    script(src="bower_components/pastac-edit-supplier/dist/pastac-edit-supplier.js" type="text/javascript")  
+    script(src="bower_components/pastac-edit-product/dist/pastac-edit-product.js" type="text/javascript")  
     ```
 
 1. Use the component in your Pug files (formerly called Jade)  
 
     ```pug
-    pastac-edit-supplier(jwt="jwt" handler="handler")
+    pastac-edit-product(jwt="jwt" handler="handler")
     ```
 
     In most cases this component will be used on a page that uses the `pastac-login` component, which will
@@ -32,7 +33,7 @@ This module is treated as a standard Angular 1 component. To use it on an Angula
 1. Invoke the module in your Angular initialization
 
     ```javascript
-    var module = angular.module('myApp', [ 'pastac-edit-supplier' ]);  
+    var module = angular.module('myApp', [ 'pastac-edit-product' ]);  
     ...
 
     $scope.handler = {

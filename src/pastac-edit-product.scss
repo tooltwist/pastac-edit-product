@@ -4,7 +4,7 @@
 ///
 
   // A spinner object, to show while waiting
-  .pastac-edit-supplier-spinner {
+  .pastac-edit-product-spinner {
       -animation: spinnerKeyFrame .7s infinite linear;
       -webkit-animation: spinnerKeyFrame2 .7s infinite linear;
       margin-right: 12px;
@@ -19,3 +19,16 @@
     from { -webkit-transform: rotate(0deg);}
     to { -webkit-transform: rotate(360deg);}
   }
+
+// #pastac-edit-product-tab-details {
+//   padding-left: 5%;
+//   padding-right: 5%;
+// }
+//
+// #pastac-edit-product-tab-products {
+//   cursor: pointer;
+// }
+
+.pastac-edit-product tags-input {
+  height: 33px !important;
+}

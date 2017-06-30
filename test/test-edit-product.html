@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <!-- Title block allowing child pages to override-->
-  <title>pastac-edit-supplier</title>
+  <title>pastac-edit-product</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="description" content="">
@@ -13,7 +13,14 @@
   <link href="../bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css">
   <link href="/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <link href="../bower_components/pastac-login/dist/pastac-login.css" rel="stylesheet" type="text/css">
-  <link href="../dist/pastac-edit-supplier.css" rel="stylesheet" type="text/css">
+  <link href="../dist/pastac-edit-product.css" rel="stylesheet" type="text/css">
+  <!--
+  <link href='../bower_components/bootstrap-toggle/css/bootstrap-toggle.min.css' rel="stylesheet" type="text/css">
+-->
+  <link href='../bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css' rel="stylesheet" type="text/css">
+  <link href='../bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css' rel="stylesheet" type="text/css">
+  <link href="../bower_components/ng-tags-input/ng-tags-input.min.css" rel="stylesheet" type="text/css">
+
 
   <style>
   body {
@@ -77,15 +84,13 @@
         Component testing
       </h1>
       <h4>
-        component: pastac-edit-supplier
+        component: pastac-edit-product
       </h4>
 
       <br/>
       <br/>
 
-      <pastac-edit-supplier jwt="jwt" handler="handler" supplier-type="Drinkmaker"></pastac-edit-supplier>
-
-      <nav class="navbar navbar-default" ng-class="{'navbar-inverse': inverseColors}">
+      <nav class="navbar navbar-default">
         <div class="container-fluid">
           <div class="navbar-header">
             <a class="navbar-brand" href="#">Please Log in</a>
@@ -97,41 +102,39 @@
         -->
           <ul class="nav navbar-nav navbar-right">
             <li>
-              <pastac-login config="authserviceConfig" template="navbar" handler="handler" fresh-credentials="true" signin="saySignin" hide-register="hideRegister" hide-forgot="hideForgot" facebook="useFacebook" google="useGoogle" github="useGithub"></pastac-edit-supplier>
+              <pastac-login config="authserviceConfig" template="navbar" handler="handler" fresh-credentials="true" signin="saySignin" hide-register="hideRegister" hide-forgot="hideForgot" facebook="useFacebook" google="useGoogle" github="useGithub"></pastac-edit-product>
             </li>
           </ul>
         </div>
       </nav>
 
       <br/>
-      <h3>Add a new Supplier</h3>
-
-      <br>
-      <br>
-      <br>
-
-
-      Is administrator:
-      <span ng-hide="!currentUser.isAdmin">YES</span>
-      <span ng-hide="currentUser.isAdmin">NO</span>
-      <br/>
+      Product ID:&nbsp;
+      <input id="myProductId" ng-model="productID" ng-disabled="!currentUser.isAdmin">
       <br/>
 
-      <a ng-hide="!currentUser.isAdmin" class="btn btn-danger" data-toggle="modal" data-target="#add-supplier-modal"> Add a new Drinkmaker </a>
+            <br/>
+            <br/>
+            Yipee
+
+      <div style="min-height: 500px">
+        <pastac-edit-product jwt="jwt" handler="handler" product-id="productID" show-products="true" back-button="false"></pastac-edit-product>
+      </div>
+
+      <br/>
 
 
-      <br>
-      <br>
-      <br>
-      <br>
+
       <br>
       <br>
       <hr/>
-      <h4>Current User</h4>
+      <h2>Product</h2>
+      {{product}}
+      <h2>Variants</h2>
+      {{variants}}
+      <h2>Current User</h2>
       {{currentUser}}
-      <br>
-      <br>
-      <h4>JWT</h4>
+      <h2>JWT</h2>
       {{jwt}}
       <hr/>
 
@@ -141,9 +144,13 @@
   </div>
 </body>
 <script src="../bower_components/jquery/dist/jquery.js" type="text/javascript"></script>
-<script src="../bower_components/angular/angular.min.js"></script>
+<script src="../bower_components/angular/angular.min.js" type="text/javascript"></script>
 <script src="../bower_components/bootstrap/dist/js/bootstrap.js" type="text/javascript"></script>
-<script src="../bower_components/jwt-decode/build/jwt-decode.min.js"></script>
+<script src="../bower_components/jwt-decode/build/jwt-decode.min.js" type="text/javascript"></script>
+
+<script src="/bower_components/ckeditor/ckeditor.js" type="text/javascript"></script>
+<script src="/bower_components/angular-ckeditor/angular-ckeditor.min.js" type="text/javascript"></script>
+<script src="/assets/vendor/tooltwist-views-client/tooltwist-views-client.js" type="text/javascript"></script>
 
 <!--
 <script src="http://drinkcircle-mvp.s3-website-ap-southeast-2.amazonaws.com/assets/vendor/authservice/authservice.js", type="text/javascript"></script>
@@ -156,21 +163,23 @@ var AUTHSERVICE_TENANT = 'test';
 var AUTHSERVICE_USE_DUMMY_LOGIN = false;
 var TEASERVICE_HOST = 'localhost';
 var TEASERVICE_PORT = 3000;
+var TEASERVICE_ACCESS_TOKEN = '0613952f81da9b3d0c9e4e5fab123437';
+var TEASERVICE_VERSION = '2.0.0';
 var TEASERVICE_APIKEY = 'test';
 
 </script>
 <script src="/assets/vendor/teaservice/teaservice.js" type="text/javascript"></script>
-<script src="../dist/tmp-authservice.js" type="text/javascript"></script>
+<script src="../bower_components/pastac-login/dist/tmp-authservice.js" type="text/javascript"></script>
 <script src="../bower_components/pastac-login/dist/pastac-login.js" type="text/javascript"></script>
-<script src="../dist/pastac-edit-supplier.js" type="text/javascript"></script>
+<script src="../dist/pastac-edit-product.js" type="text/javascript"></script>
+<script src="/bower_components/angular-sanitize/angular-sanitize.min.js" type="text/javascript"></script>
+<script src='/bower_components/ng-file-upload/ng-file-upload.min.js' type="text/javascript"></script>
+<script src='/bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.js' type="text/javascript"></script>
+<script src="../bower_components/ng-tags-input/ng-tags-input.min.js" type="text/javascript"></script>
 
 <script>
-var module = angular.module('myApp', [ 'pastac-login', 'pastac-edit-supplier' ]);
+var module = angular.module('myApp', [ 'pastac-login', 'pastac-edit-product'/*, 'ngSanitize'*/, 'ckeditor', 'ngFileUpload', 'ui.toggle', 'ngTagsInput' ]);
 module.controller('myCtrl', function($scope, $timeout) {
-
-  $scope.useFacebook = true;
-  $scope.useGoogle = true;
-  $scope.useGithub = true;
 
   $scope.authserviceConfig = {
     host: AUTHSERVICE_HOST,
@@ -184,14 +193,23 @@ module.controller('myCtrl', function($scope, $timeout) {
       $scope.currentUser = user;
       $scope.jwt = jwt;
     },
-    onAddSupplier: function(successResponse, errorResponse) {
-      //alert('handler.onAddSupplier()')
-
-      if (successResponse) {
-        var supplierId = successResponse.supplierId;
-        alert('New supplier is ' + supplierId)
-      }
+    onLoadProduct: function(product) {
+      $scope.product = product;
+    },
+    onLoadVariants: function(variants) {
+      $scope.variants = variants;
     }
+  }//= handler
+
+  $timeout(function() {
+    $('#myProductId').focus();
+  }, 500);
+
+  $scope.productID = '546'
+  $scope.switchStatus = true;
+
+  $scope.loadCategoryTags = function(query) {
+    console.log('main.loadCategoryTags() ' + query)
   }
 
 });
