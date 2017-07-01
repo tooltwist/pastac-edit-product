@@ -113,11 +113,7 @@
       <input id="myProductId" ng-model="productID" ng-disabled="!currentUser.isAdmin">
       <br/>
 
-            <br/>
-            <br/>
-            Yipee
-
-      <div style="min-height: 500px">
+      <div ng-hide="!currentUser || !currentUser.isAdmin" style="min-height: 500px">
         <pastac-edit-product jwt="jwt" handler="handler" product-id="productID" show-products="true" back-button="false"></pastac-edit-product>
       </div>
 

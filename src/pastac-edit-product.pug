@@ -16,17 +16,17 @@ block content
             br
           ul.nav.nav-tabs
             li.active
-              a(href="#tab-product-summary" data-toggle="tab") Summary
+              a(data-target="#tab-product-summary" data-toggle="tab") Summary
             li
-              a(href="#tab-product-details" data-toggle="tab") Details
+              a(data-target="#tab-product-details" data-toggle="tab") Details
             li
-              a(href="#tab-product-descriptions" data-toggle="tab") Description
+              a(data-target="#tab-product-descriptions" data-toggle="tab") Description
             li
-              a(href="#tab-product-notes" data-toggle="tab") Notes
+              a(data-target="#tab-product-notes" data-toggle="tab") Notes
             li
-              a(href="#tab-product-metadata" data-toggle="tab") SEO
+              a(data-target="#tab-product-metadata" data-toggle="tab") SEO
             li
-              a(href="#tab-product-variants" data-toggle="tab") Variants
+              a(data-target="#tab-product-variants" data-toggle="tab") Variants
           br
           .actions-wrap.hide.NOTYET
             a.btn(ng-click="product_backButton()") Back to product list
@@ -38,6 +38,7 @@ block content
             // Product summary pane
             #tab-product-summary.tab-pane.active
               label Product Categories
+              // See http://mbenford.github.io/ngTagsInput/documentation/api#tagsInput
               tags-input(ng-model="ctrl.categoryTags" on-tag-added="ctrl.doAddCategory($tag)" on-tag-removed="ctrl.doRemoveCategory($tag)" add-from-autocomplete-only="true" placeholder="Add a category")
                 auto-complete(source="ctrl.loadCategoryTags($query)" min-length="1" max-results-to-show="20" load-on-empty="true" load-on-focus="false")
               //- br
@@ -223,7 +224,7 @@ block content
                     br
                     div(ng-repeat="image in productVariantImage_list")
                       .col-md-4
-                        img.img-responsive.thumbnail(src="{{image.image_path}}")
+                        img.img-responsive.thumbnail(ng-src="{{image.image_path}}")
                         hr
 
       //
@@ -256,21 +257,21 @@ block content
           toggle(ng-hide="variant.is_deleted" ng-model="variant.is_approved" onstyle="btn-success" offstyle="btn-info" on="Active" off="Inactive" size="btn-sm").pull-right
           ul.nav.nav-tabs
             li.active
-              a(href="#pastac-edit-product-tab-summary" data-toggle="tab") Summary
+              a(data-target="#pastac-edit-product-tab-summary" data-toggle="tab") Summary
             li
-              a(href="#pastac-edit-product-tab-details" data-toggle="tab") Details
+              a(data-target="#pastac-edit-product-tab-details" data-toggle="tab") Details
             li
-              a(href="#pastac-edit-product-tab-pricing" data-toggle="tab") Pricing
+              a(data-target="#pastac-edit-product-tab-pricing" data-toggle="tab") Pricing
             li
-              a(href="#pastac-edit-product-tab-images" data-toggle="tab") Images
+              a(data-target="#pastac-edit-product-tab-images" data-toggle="tab") Images
             li
-              a(href="#pastac-edit-product-tab-notes" data-toggle="tab") Notes
+              a(data-target="#pastac-edit-product-tab-notes" data-toggle="tab") Notes
             li
-              a(href="#pastac-edit-product-tab-specs" data-toggle="tab" ng-hide="!haveCurrentVariant()") Specs
+              a(data-target="#pastac-edit-product-tab-specs" data-toggle="tab") Specifications
             //li
-            //  a(href="#tab-productVariant-related" data-toggle="tab" ng-hide="!haveCurrentVariant()") Related
+            //  a(data-target="#tab-productVariant-related" data-toggle="tab") Related
             //li
-            //  a(href="#tab-productVariant-supplier" data-toggle="tab" ng-hide="!haveCurrentVariant()") Supplier
+            //  a(data-target="#tab-productVariant-supplier" data-toggle="tab") Supplier
 
           .tab-content.clearfix
 
@@ -420,8 +421,38 @@ block content
             #pastac-edit-product-tab-specs.tab-pane
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
               br
-              #productVariant_specsDiv
+              .card(ng-repeat="category in variant._specTypesOptionsAndValues.categories")
+                h4 Category: {{category.category_name}}
+                table.table-condensed.pastac-edit-product-specification-table
+                  tr(ng-repeat="type in category.category_specification_types")
+                    td
+                      | {{type.name}}
+                      span(ng-hide="!type.uom") &nbsp;({{type.uom}})
+                    td
+                      div(ng-switch="type.data_type")
 
+                        // Integer specification type
+                        div(ng-switch-when="INT")
+                          input(type="number" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }")
+
+                        // Decimal specification type
+                        div(ng-switch-when="DEC")
+                          input(type="number" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }")
+                            
+                        // text specification type
+                        div(ng-switch-when="TXT")
+                          input(type="text" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }")
+
+                        // List of options
+                        div(ng-switch-when="OPT")
+                          select(ng-model="type._selectedOption" ng-options="option.value for option in type.options" ng-change="ctrl.doSelectSpecificationOption(variant, category, type)")
+                          //- br
+                          //- select
+                          //-   option(value="")
+                          //-   optgroup(label="----------")
+                          //-   option(ng-repeat="option in type.options" value="hello" selected="selected" ng-click="ctrl.doSelectSpecificationOption(type, option)") {{option.value}}
+                //- table
+                br
 
 
             #pastac-edit-product-tab-images.tab-pane
@@ -429,7 +460,7 @@ block content
               br
               div(ng-repeat="image in variant._productVariantImage_list")
                 .col-md-4
-                  img.img-responsive.thumbnail(src="{{image.image_path}}")
+                  img.img-responsive.thumbnail(ng-src="{{image.image_path}}")
 
 
           //- form-group

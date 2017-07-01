@@ -141,6 +141,7 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
   }//- doSave()
 
 
+
   // Called when a product is selected.
   ctrl.doSelectProduct = function(product) {
     console.log('ctrl.selectProduct()');
@@ -149,6 +150,106 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
       ctrl.handler.onSelectProduct(product.productId);
     }
   }//- selectProduct()
+
+
+
+  ctrl.doSelectSpecificationOption = function(variant, category, specificationType) {
+    console.log('doSelectSpecificationOption()');
+    console.log('specificationType=', specificationType);
+    console.log('selectedOption=', specificationType._selectedOption);
+    saveSpecificationValue(variant, specificationType, specificationType._selectedOption.category_specification_option_id);
+
+    // If we have multiple categories for this variant, some other category
+    // might have the same specification type. For example "Country". In that
+    // case, we'll want to copy and save that value as well.
+    variant._specTypesOptionsAndValues.categories.forEach(function(otherCategory) {
+      if (otherCategory.category_id != category.category_id) {
+        // alert('Different category ' + otherCategory.category_name);
+        otherCategory.category_specification_types.forEach(function(otherSpecificationType) {
+          if (otherSpecificationType.specification_type_id == specificationType.specification_type_id) {
+            // alert('Has the same specType ' + otherSpecificationType.name);
+            // Find the option with the same value
+            otherSpecificationType.options.forEach(function(opt) {
+              if (opt.value == specificationType._selectedOption.value) {
+                // Same value is available
+                otherSpecificationType._selectedOption = opt;
+                saveSpecificationValue(variant, otherSpecificationType, opt.category_specification_option_id);
+              }
+            })
+          }
+        });
+      }
+
+    });
+  }
+
+
+
+  /*
+   *  Set an integer specification value.
+   */
+  ctrl.doSetSpecificationValue = function(variant, category, specificationType) {
+    console.log('doSetSpecificationValue()');
+    console.log('specificationType=', specificationType);
+    console.log('selectedOption=', specificationType._currentValue);
+
+    var value = specificationType._currentValue;
+
+    saveSpecificationValue(variant, specificationType, value);
+
+    // If we have multiple categories for this variant, some other category
+    // might have the same specification type. For example "Country". In that
+    // case, we'll want to copy and save that value as well.
+    variant._specTypesOptionsAndValues.categories.forEach(function(cat) {
+      if (cat.category_id != category.category_id) {
+        // alert('Different category ' + cat.category_name);
+        cat.category_specification_types.forEach(function(otherSpecificationType) {
+          if (otherSpecificationType.specification_type_id == specificationType.specification_type_id) {
+            // alert('Has the same specType ' + otherSpecificationType.name);
+            otherSpecificationType._currentValue = specificationType._currentValue;
+            saveSpecificationValue(variant, otherSpecificationType, value);
+          }
+        });
+      }
+    });
+  }
+
+
+
+  function saveSpecificationValue(variant, specificationType, value) {
+
+    var TEASERVICE_APIKEY = '12345';
+    var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/' + TEASERVICE_APIKEY + '/productSpecifications';
+    var params = {
+      product_variant_id: variant.product_variant_id,
+      category_specification_type_id: specificationType.category_specification_type_id
+    };
+    switch (specificationType.data_type) {
+      case 'TXT': params.text = value; break;
+      case 'INT': params.int = value; break;
+      case 'DEC': params.dec = value; break;
+      case 'OPT': params.category_specification_option_id = value; break;
+    }
+    // console.log('---------------------');
+    // console.log('Save product_variant_specification_value:', params);
+    // console.log('URL=' + url);
+    // console.log('PARAMS=', params);
+    var req = {
+      method: 'POST',
+      url: url,
+      headers: {
+        "access-token": "0613952f81da9b3d0c9e4e5fab123437",
+        "version": "2.0.0"
+      },
+      data: params
+    };
+    $http(req).then(function(response) {
+      // All okay
+      // console.log('updated');
+      $timeout(function() { ctrl.errmsg = null; }, 3000);
+    }, TEAServiceError);
+
+  }
 
 
   /*
@@ -170,6 +271,8 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
     return matches;
   };
 
+
+
   // Call the server to remove a category
   ctrl.doRemoveCategory = function(tag) {
     var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/delProductCategory';
@@ -187,9 +290,14 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
       data: params
     };
     $http(req).then(function(response) {
-      // All okay
+      // All okay. Reload the specifications
+      ctrl.variants.forEach(function(variant) {
+        loadSpecTypesOptionsAndValuesForVariant($http, ctrl.teaContext, variant)
+      });
     }, TEAServiceError);
   }
+
+
 
   // Call the server to add a category
   ctrl.doAddCategory = function(tag) {
@@ -208,9 +316,13 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
       data: params
     };
     $http(req).then(function(response) {
-      // All okay
+      // All okay. Reload the specifications
+      ctrl.variants.forEach(function(variant) {
+        loadSpecTypesOptionsAndValuesForVariant($http, ctrl.teaContext, variant)
+      });
     }, TEAServiceError);
   };//- ctrl.doAddCategory()
+
 
 
 
@@ -223,8 +335,6 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
         product_id: productId
       }
     }
-
-
     TooltwistViews.select(ctrl.teaContext, PRODUCT_VIEW, params, function selected(err, data, metadata) {
       if (err) {
         console.log('Error selecting view ' + PRODUCT_VIEW, err);
@@ -267,8 +377,6 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
     		{ name: 'about', groups: [ 'about' ] }
     	];
     	ctrl.ckeditorOptions.removeButtons = 'Underline,Subscript,Superscript,Strike,Maximize,Image,Table,HorizontalRule,SpecialChar,Link,Unlink,Anchor,Scayt,PasteFromWord,PasteText,Source,Styles,Format,About,Blockquote';
-
-
 
       // Provide style options for displaying the list and record.
       var displayOptions = {
@@ -321,16 +429,7 @@ console.log('Set record:', ctrl.product);
       // if (ctrl.showProducts) {
         loadVariantsForProduct($scope, ctrl.teaContext, ctrl.product.product_id);
       // }
-
-
-
-
-
-
-
     });
-
-
   }//- loadProduct()
 
 
@@ -503,69 +602,12 @@ console.log('Set record:', ctrl.product);
         //alert('variant is ' + variant.product_variant_id)
         loadImagesForVariant($http, context, variant)
         loadPricesForVariant($http, context, variant)
+        loadSpecTypesOptionsAndValuesForVariant($http, context, variant)
       });
-
-
-
       if (ctrl.handler && ctrl.handler.onLoadVariants) {
         ctrl.handler.onLoadVariants(data);
       }
     });
-
-    return;
-
-    // var filter = 'broken';
-    // if (filter.length < 3) {
-    //   ctrl.products = [ ];
-    //   return;
-    // }
-
-    ctrl.products = [ ];
-
-    // Prepare the URL to Teaservice
-    var protocol = 'http';
-    var host = ctrl.teaContext.TEASERVICE_HOST;
-    var port = ctrl.teaContext.TEASERVICE_PORT;
-    var baseUrl = protocol + '://' + host + ':' + port;
-    var url = baseUrl + '/philChristmas/product';
-    console.log('url is ' + url)
-
-    var params = {
-      //productVariantId: 6180,
-      productId: productId
-    };
-
-    // Call the API to get the product details
-    // ZZZZ This should use JSONP, as some browsers do not support CORS.
-    // ZZZZ Unfortunately JSONP does not support headers, so we need
-    // ZZZZ to pass details either in the url or the data. i.e. the
-    // ZZZZ server requires changes.
-    var req = {
-      method: 'POST',
-      url: url,
-      headers: {
-        "access-token": "0613952f81da9b3d0c9e4e5fab123437",
-        "version": "2.0.0"
-      },
-      data: params
-    };
-
-    // Prepare the promise, so the caller can use .then(fn) to handle the result.
-    var promise = $http(req).then(function(response) {
-      console.log('success:', response)
-
-      ctrl.products = response.data;
-      $timeout(function() {
-        $scope.$apply();
-      }, 2000);
-      //return response.data;
-
-    }, function(response) {
-      alert('An error occurred calling the TEA API.\nSee the Javascript console for details.')
-      console.log('failure:', response)
-      console.log('failure:', response.data.message);
-    });
-
   }//- loadVariantsForProduct()
 
 
@@ -765,7 +807,57 @@ console.log('Set record:', ctrl.product);
       context.$compile(listDiv)($scope);
 
     });// select
-  }
+  }//- loadImagesForVariant()
+
+
+
+  function loadSpecTypesOptionsAndValuesForVariant($http, context, variant) {
+    console.log('loadSpecTypesOptionsAndValuesForVariant()');
+
+    var TEASERVICE_APIKEY = '12345';
+    var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/' + TEASERVICE_APIKEY + '/productSpecifications/' + variant.product_variant_id;
+    var params = {
+      product_variant_id: variant.product_variant_id
+    };
+    console.log('URL=' + url);
+    console.log('PARAMS=', params);
+    var req = {
+      method: 'GET',
+      url: url,
+      headers: {
+        "access-token": "0613952f81da9b3d0c9e4e5fab123437",
+        "version": "2.0.0"
+      },
+      data: params
+    };
+    $http(req).then(function(response) {
+      // All okay
+      variant._specTypesOptionsAndValues = response.data;
+
+      // Set the currently selected values
+      variant._specTypesOptionsAndValues.categories.forEach(function(category) {
+        category.category_specification_types.forEach(function(type) {
+          if (type.current_value) {
+            switch(type.data_type) {
+              case 'TXT': type._currentValue = type.current_value.text; break;
+              case 'INT': type._currentValue = type.current_value.int; break;
+              case 'DEC': type._currentValue = type.current_value.dec; break;
+              case 'OPT':
+                // Find the option record
+                type.options.forEach(function(option) {
+                  if (option.category_specification_option_id == type.current_value.category_specification_option_id) {
+                    type._selectedOption = option;
+                  }
+                })
+                break;
+            }
+          }
+        })
+      });
+    }, TEAServiceError);
+  }//- loadSpecTypesOptionsAndValuesForVariant
+
+
   /*
    *
 
@@ -786,37 +878,37 @@ console.log('Set record:', ctrl.product);
 
    */
    //ZZZ Not used
-  function addSupplier($http, jwt, options, callback/*(successResponse,errorResponse)*/) {
-    console.log('addSupplier()')
-    console.log('options: ', options);
-
-    var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/saveSupplier';
-    console.log('url=' + url);
-
-    var req = {
-      method: 'PUT',
-      url: url,
-      headers: {
-        "Authorization": jwt,
-        "access-token": "0613952f81da9b3d0c9e4e5fab123437",//ZZZZ Hack
-        "version": "3.0.0"
-      },
-      data: options
-    };
-
-    // Prepare the promise, so the caller can use .then(fn) to handle the result.
-    ctrl.inProgress = true;
-    $http(req).then(function(response) {
-
-      // Added okay
-      ctrl.inProgress = false;
-      ctrl.errmsg = null;
-      $('#add-supplier-modal').modal('hide');
-      if (callback) {
-        return callback(response.data, null)
-      }
-    }, TEAServiceError);
-  }
+  // function addSupplier($http, jwt, options, callback/*(successResponse,errorResponse)*/) {
+  //   console.log('addSupplier()')
+  //   console.log('options: ', options);
+  //
+  //   var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/saveSupplier';
+  //   console.log('url=' + url);
+  //
+  //   var req = {
+  //     method: 'PUT',
+  //     url: url,
+  //     headers: {
+  //       "Authorization": jwt,
+  //       "access-token": "0613952f81da9b3d0c9e4e5fab123437",//ZZZZ Hack
+  //       "version": "3.0.0"
+  //     },
+  //     data: options
+  //   };
+  //
+  //   // Prepare the promise, so the caller can use .then(fn) to handle the result.
+  //   ctrl.inProgress = true;
+  //   $http(req).then(function(response) {
+  //
+  //     // Added okay
+  //     ctrl.inProgress = false;
+  //     ctrl.errmsg = null;
+  //     $('#add-supplier-modal').modal('hide');
+  //     if (callback) {
+  //       return callback(response.data, null)
+  //     }
+  //   }, TEAServiceError);
+  // }
 
   function TEAServiceError(response) {
     // An error occurred
@@ -841,5 +933,8 @@ console.log('Set record:', ctrl.product);
     //   return callback(null, response)
     // }
   }
+
+
+
 
 }
