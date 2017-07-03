@@ -11,7 +11,8 @@ angular.module('pastac-edit-product', [ ])
     handler: '<',       // object with callbacks
     jwt: '<',           // The JSON web token
     productId: '<',
-    backButton: '<',  // boolean
+    productButton: '@',  // Label to display on the product button
+    variantButton: '@',  // Label to display on the variant button
     template: '@'
   },
 
@@ -27,7 +28,7 @@ angular.module('pastac-edit-product', [ ])
 });
 
 
-function PastacEditProductController($scope, $timeout, $http, $compile) {
+function PastacEditProductController($scope, $timeout, $http, $compile, Upload) {
   var ctrl = this;
   var _productId = null;
 
@@ -88,12 +89,23 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
   }//- $onChanges
 
 
-  // Called when the back button is pressed
-  ctrl.doBack = function() {
-    if (ctrl.handler && ctrl.handler.onBack) {
-      ctrl.handler.onBack();
+
+
+  // Called when the product button is pressed
+  ctrl.doProductButton = function(product) {
+    if (ctrl.handler && ctrl.handler.onProductButton) {
+      ctrl.handler.onProductButton(product);
     }
-  }//- doBack()
+  }//- doProductButton()
+
+
+
+  // Called when the variant button is pressed
+  ctrl.doVariantButton = function(product, variant) {
+    if (ctrl.handler && ctrl.handler.onVariantButton) {
+      ctrl.handler.onVariantButton(product, variant);
+    }
+  }//- doVariantButton()
 
 
 
@@ -102,42 +114,43 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
    */
   ctrl.doSave = function() {
     console.log('doSave()');
-
-    // Update the basic details
-    console.log('rec is ', ctrl.product);
-
     TooltwistViews.save(ctrl.teaContext, PRODUCT_METADATA, 'record', ctrl.product, function(err, reply) {
       console.log('save returned', err, reply);
       if (err) {
-        console.log('Error selecting view ' + PRODUCT_VIEW + '/record', err);
+        console.log('Error saving view ' + PRODUCT_VIEW + '/record', err);
         return;
       }
-    });
 
-    // Update the story
-    TooltwistViews.save(ctrl.teaContext, PRODUCT_METADATA, 'story', ctrl.product, function(err, reply) {
-      console.log('story save returned', err, reply);
-      if (err) {
-        console.log('Error selecting view ' + PRODUCT_METADATA + '/story', err);
-        return;
-      }
-    });
-
-    // If we are an administrator, update those values as well
-    if (true) {
-    // if ($scope.currentUser.isAdmin) {//ZZZZ Need to save this
-      TooltwistViews.save(ctrl.teaContext, PRODUCT_METADATA, 'admin', ctrl.product, function(err, reply) {
-        console.log('admin save returned', err, reply);
-        if (err) {
-          console.log('Error selecting view ' + PRODUCT_VIEW + '/admin', err);
+      /*
+       *  Save the product variants
+       */
+      (function saveNextVariant(index) {
+        if (index >= 1) {
+        // if (index >= ctrl.variants.length) {
+          // Finished
           return;
         }
-      });
-    }
+        var variant = ctrl.variants[index];
+        console.log('Save variant ' + index + ':', variant);
+        alert('next variant')
+        saveNextVariant(index + 1);
+    //return;
+        TooltwistViews.save(ctrl.teaContext, VARIANT_METADATA, 'record', variant, function(err, reply) {
+          console.log('save returned', err, reply);
+          if (err) {
+            console.log('Error saving view ' + VARIANT_VIEW + '/record', err);
+            return;
+          }
 
-    // context.$timeout(function() {
-    //   context.$scope.supplier2_showListPane = true;
-    // }, 10);
+          setTimeout(function() {
+            // timeout prevents stack overflow.
+            saveNextVariant(index + 1);
+          }, 1);
+        });//- TooltwistViews.save variant
+
+      })(0); // Start saveNextVariant
+    });//- TooltwistViews.save product
+
   }//- doSave()
 
 
@@ -330,7 +343,7 @@ function PastacEditProductController($scope, $timeout, $http, $compile) {
     console.log('loadProduct:', productId);
 
     var params = {
-      //withReferences: false,
+      withReferences: true,
       where: {
         product_id: productId
       }
@@ -529,79 +542,20 @@ console.log('Set record:', ctrl.product);
 
 
       // Provide style options for displaying the list and record.
-      var displayOptions = {
-        //prefix: 'productVariant',
-        listModel: 'productVariant_list', // in $scope
-        recordScope: 'ctrl', // in $scope
-        recordModel: 'variant', // in $scope
-        listClickFunction: 'productVariant_listClick', // in $scope
-        listTableClasses: 'table-condensed table-hover',
-      };
+      // var displayOptions = {
+      //   //prefix: 'productVariant',
+      //   listModel: 'productVariant_list', // in $scope
+      //   recordScope: 'ctrl', // in $scope
+      //   recordModel: 'variant', // in $scope
+      //   listClickFunction: 'productVariant_listClick', // in $scope
+      //   listTableClasses: 'table-condensed table-hover',
+      // };
 
-      // Add fields to the DOM for the list
-      /*
-      var fields = TooltwistViews.fieldsForMode(metadata, 'list');
-      var html = TooltwistViews.htmlForAngular_list(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var listDiv = $('#productVariant_listDiv');
-      listDiv.html(html);
-      context.$compile(listDiv)($scope);
-
-      // Add fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'record');
-      var html = TooltwistViews.htmlForAngular_horizontalDescription(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_summaryDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);
-
-      // Add fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'record');
-      var html = TooltwistViews.htmlForAngular_edit(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_detailsDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);
-
-      // Add pricing fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'pricingTab');
-      var html = TooltwistViews.htmlForAngular_edit(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_pricingDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);
-
-      // Add specs fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'specsTab');
-      var html = TooltwistViews.htmlForAngular_edit(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_specsDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);
-
-      // Add notes fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'notesTab');
-      var html = TooltwistViews.htmlForAngular_edit(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_notesDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);
-      */
-
-
-      /*// Add notes fields to the DOM for the record
-      var fields = TooltwistViews.fieldsForMode(metadata, 'imagesTab');
-      var html = TooltwistViews.htmlForAngular_edit(metadata, fields, displayOptions);
-      // Update the DOM and get Angular to bind our new DOM elements onto it's models.
-      var recordDiv = $('#productVariant_notesDiv');
-      recordDiv.html(html);
-      context.$compile(recordDiv)($scope);*/
-
-
+      // Load details for the product variants
       ctrl.variants.forEach(function(variant) {
         //alert('variant is ' + variant.product_variant_id)
-        loadImagesForVariant($http, context, variant)
-        loadPricesForVariant($http, context, variant)
+        loadImagesForVariant(variant)
+        loadPricesForVariant(variant)
         loadSpecTypesOptionsAndValuesForVariant($http, context, variant)
       });
       if (ctrl.handler && ctrl.handler.onLoadVariants) {
@@ -617,7 +571,7 @@ console.log('Set record:', ctrl.product);
   /*
    *  Load the prices into a product variant.
    */
-  function loadPricesForVariant($scope, context, variant) {
+  function loadPricesForVariant(variant) {
 
     /*
      *  The pricing table provides various rules, based upon
@@ -658,7 +612,7 @@ console.log('Set record:', ctrl.product);
          scope: 'V' // On Product Variant
        }
      }
-    TooltwistViews.select(context, PRICING_VIEW, params, function(err, data, metadata) {
+    TooltwistViews.select(ctrl.teaContext, PRICING_VIEW, params, function(err, data, metadata) {
       if (err) {
         console.log('Error selecting view ' + PRICING_VIEW, err);
         return;
@@ -690,13 +644,14 @@ console.log('Set record:', ctrl.product);
       if (pricing_id == '') {
 
         // There are no 'break quantity' pricing records, so tell angular we are done.
-        return context.$timeout(function(){ $scope.$apply(); }, 10);
+        // return context.$timeout(function(){ $apply(); }, 10);
+        return;
       } else {
 
         /*
          *  Load the pricing_qty records for the 'break quantity' pricing records.
          */
-        TooltwistViews.select(context, PRICING_QTY_VIEW, { where:{ pricing_id: pricing_id } }, function(err, data, metadata) {
+        TooltwistViews.select(ctrl.teaContext, PRICING_QTY_VIEW, { where:{ pricing_id: pricing_id } }, function(err, data, metadata) {
           if (err) {
             console.log('Error selecting view ' + PRICING_QTY_VIEW, err);
             return;
@@ -727,7 +682,7 @@ console.log('Set record:', ctrl.product);
 
 
           // Finished - tell Angular we are done.
-          //return context.$timeout(function(){ $scope.$apply(); }, 10);
+          //return context.$timeout(function(){ $apply(); }, 10);
         });
       }
 
@@ -753,7 +708,7 @@ console.log('Set record:', ctrl.product);
       // Update the DOM and get Angular to bind our new DOM elements onto it's models.
       var listDiv = $('#productVariantImage_listDiv');
       listDiv.html(html);
-      context.$compile(listDiv)($scope);*/
+      $compile(listDiv)($scope);*/
 
     });// select
   }//- loadPricesForVariant
@@ -762,11 +717,11 @@ console.log('Set record:', ctrl.product);
   /*
    *  Load the images for a product variant.
    */
-  function loadImagesForVariant($http, context, variant) {
+  function loadImagesForVariant(variant) {
     /*
      *  Select the product_variant_image records for this product_variant.
      */
-    TooltwistViews.select(context, PV_IMAGE_VIEW, {
+    TooltwistViews.select(ctrl.teaContext, PV_IMAGE_VIEW, {
       withReferences: false,
       where: {
         product_variant_id: variant.product_variant_id
@@ -778,16 +733,84 @@ console.log('Set record:', ctrl.product);
       }
       PV_IMAGE_METADATA = metadata;
 
-      // Use this product variant data
-      variant._productVariantImage_list = data;
-      /*if ($scope.productVariant_record && $scope.productVariant_record.product_id != $scope.product.productId) {
-        $scope.productVariant_record = null;
-      }*/
+      // Use this image list
 
-      console.log('product_variant_image data=', data);
-      console.log('product_variant_image metadata=', metadata);
+      // console.log('------------------');
+      // console.log('------------------');
+      // console.log('------------------');
+      // console.log('------------------');
+      variant._productVariantImage_list = [ ];
+      var cl = null;
+      data.forEach(function(image) {
+        if (!image.image_path) {
+          // Not loaded properly, or yet.
+          return;
+        }
 
-      //$scope.productVariant_viewLabel = metadata.label;
+        console.log('++++++++++\n++++++++++\n++++++++++\n', image);
+        const CLOUDINARY_PREFIX = 'cloudinary:';
+        if (image.image_path.startsWith('cloudinary')) {
+          console.log('IS CLOUDINARY IMAGE');
+          // Convert the image to multiple formats
+          if (cl == null) {
+            //alert('init cl')
+            cl = cloudinary.Cloudinary.new( { cloud_name: CLOUDINARY_CLOUD_NAME});
+          }
+
+          // See http://cloudinary.com/documentation/image_transformations#resizing_and_cropping_images
+          var publicId = image.image_path.substring(CLOUDINARY_PREFIX.length);
+          var imageName = publicId + '.jpg';
+          image._cloudinaryImage_raw = cl.url(imageName);
+          image._cloudinaryImage_lowquality = cl.url(imageName, { width:200, effect:"blur:600", opacity:50, crop: "scale" });
+
+          // console.log('----> ' + image._cloudinaryImage_lowquality);
+          //console.log('====> ' + cl.imageTab(imageName, { width:100, blur:300, opacity:50 }));
+          image._cloudinaryImage_320 = cl.url(imageName, { width: 320, crop: "limit"});
+          image._cloudinaryImage_480 = cl.url(imageName, { width: 480, crop: "limit"});
+          image._cloudinaryImage_768 = cl.url(imageName, { width: 768, crop: "limit"});
+          image._cloudinaryImage_992 = cl.url(imageName, { width: 992, crop: "limit"});
+          image._cloudinaryImage_1200 = cl.url(imageName, { width: 1200, crop: "limit"});
+          image._cloudinaryImage_1920 = cl.url(imageName, { width: 1920, crop: "limit"});
+          image._512x512 = cl.url(imageName, { width:512, height: 512, crop: "fit" });
+          image._thumbnail = cl.url(imageName, { width:200, height: 200, crop: "fit" });
+          image._raw = cl.url(imageName);
+
+          var kb = image.image_size / 1024;
+          image._size = accounting.formatNumber(kb) + ' kb';
+          // console.log('----> ' + image._thumbnail);
+
+        } else {
+
+          // Not a cloudinary image.
+          // console.log('----> default ---> ' + image.image_path);
+          image._512x512 = image.image_path;
+          image._thumbnail = image.image_path;
+          image._raw = image.image_path;
+          image._size = null;
+        }
+        variant._productVariantImage_list.push(image);
+      });//- next image
+
+      // Sort the images
+      variant._productVariantImage_list.sort(function(image1, image2) {
+        console.log('image1=', image1);
+        var s1 = image1.sort_id ? image1.sort_id : 0;
+        var s2 = image2.sort_id ? image2.sort_id : 0;
+        if (s1 < s2) return -1;
+        if (s1 > s2) return +1;
+        return 0;
+      });
+
+      // Choose the currently selected image
+      variant._selectedImage = (variant._productVariantImage_list.length > 0) ? variant._productVariantImage_list[0] : null;
+      for (var i = 0; i < variant._productVariantImage_list.length; i++) {
+        var image = variant._productVariantImage_list[i];
+        if (image.is_displayed) {
+          variant._selectedImage = image;
+          break;
+        }
+      }
+
 
       // Provide style options for displaying the list and record.
       var displayOptions = {
@@ -804,7 +827,7 @@ console.log('Set record:', ctrl.product);
       // Update the DOM and get Angular to bind our new DOM elements onto it's models.
       var listDiv = $('#productVariantImage_listDiv');
       listDiv.html(html);
-      context.$compile(listDiv)($scope);
+      $compile(listDiv)($scope);
 
     });// select
   }//- loadImagesForVariant()
@@ -934,6 +957,281 @@ console.log('Set record:', ctrl.product);
     // }
   }
 
+  /*
+   *                IMAGE LOADING
+   */
+  ctrl.doUploadImage = function(variant, file) {
+     console.log('doUploadImage()');
+
+    //var url = 'http://localhost:4000/api/2.0/drinkpoint/element?authenticationToken=U0X11WJTRM1DWIC74N1MJBQP';
+
+    // See https://github.com/danialfarid/ng-file-upload
+    var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/' + TEASERVICE_APIKEY + '/productImage';
+    var data = {
+      product_variant_id: variant.product_variant_id
+    };
+    console.log('URL=' + url);
+    console.log('PARAMS=', data);
+    //  var req = {
+    //    method: 'GET',
+    //    url: url,
+    //    headers: {
+    //      "access-token": "0613952f81da9b3d0c9e4e5fab123437",
+    //      "version": "2.0.0"
+    //    },
+    //    data: params
+    //  };
+    //  $http(req).then(function(response) {
+
+
+     //var message = $scope.message;
+    //  var data = {
+    //    "type" : "post",
+    //    "rootId" : "$community-page-user-"+userId,
+    //    "parentId" : "$community-page-user-"+userId,
+    //    "description" : message,
+    //    //"anchor" : 'community-page-post-'+userId,
+    //    "deleted" : 0
+    //  };
+
+    console.log('url is ' + url);
+    console.log('data is ', data);
+    console.log('file is ', file);
+
+
+     // See if we have a photo or video to load.
+    //  var activeTabId = $(".composer .tab-pane.active").attr('id');
+    if (file) {
+      // if (file && activeTabId === 'composer-tab-photo-video') {
+
+      // Have an image being loaded
+      ctrl.filesize = accounting.formatNumber(file.size);
+      ctrl.filename = file.name;
+      data.file = file;
+      Upload.upload({
+        //url: 'http://localhost:4000/junkphotos',
+        url: url,
+        headers: {
+          "access-token": "0613952f81da9b3d0c9e4e5fab123437",
+          "version": "2.0.0"
+        },
+        data: data
+      }).then(function (resp) {
+        console.log('resp: ', resp);
+        console.log('Success ' + resp.config.data.file.name + 'uploaded. Response: ' + resp.data);
+
+        // Reload the posts
+        // TimelinePost.manualRenderPost(resp.data.elementId, '#timelineSection');
+        $timeout(function(){
+          ctrl.message = '';
+          ctrl.file = null;
+          ctrl.progressPercentage = null; // hide the progress bar again
+          loadImagesForVariant(variant);
+        }, 1);
+
+      }, function (resp) {
+        console.log('Error status: ' + resp.status);
+      }, function (evt) {
+        console.log('evt=', evt);
+        // Show the image loading progress
+        var perc = parseInt(100.0 * evt.loaded / evt.total);
+        console.log('progress: ' + perc + '% ' + evt.config.data.file.name);
+        $timeout(function(){
+          ctrl.progressPercentage = perc;
+        }, 1);
+      });
+    }
+  };//- ctrl.doUploadImage()
+
+
+  ctrl.cancelPost = function() {
+    ctrl.file = null;
+    ctrl.progressPercentage = null;
+  }
+
+  ctrl.haveFile = function() {
+    //console.log('file is ', ctrl.file);
+    if (ctrl.file) return true;
+    return false;
+  }
+
+  ctrl.showDropArea = function() {
+    if (ctrl.file) {
+      return false;
+    }
+    return true;
+  }
+
+  ctrl.showImage = function() {
+    if ($scope.file) {
+      return true;
+    }
+    return false;
+  }
+
+  ctrl.showProgressBar = function() {
+    return (
+      ctrl.file
+      && ctrl.progressPercentage
+      && ctrl.progressPercentage < 100
+    );
+  }
+
+  ctrl.showProcessing = function() {
+    return (
+      ctrl.file
+      && ctrl.progressPercentage
+      && ctrl.progressPercentage == 100
+    );
+  }
+
+  ctrl.getPercentage = function() {
+    return ctrl.progressPercentage;
+  }
+
+  ctrl.doToggleIsDisplayed = function(variant, image) {
+    if (image.is_displayed == 1) {
+      image.is_displayed = 0;
+    } else {
+      image.is_displayed = 1;
+    }
+    saveProductImageOrderAndIsDisplayed(variant);
+  }
+
+  /*
+   *  Make the specified image the default image.
+   */
+  ctrl.doSetAsDefaultProductImage = function(variant, image) {
+    var cnt = 0;
+    var newlist = [ ];
+    if (image) {
+      variant._selectedImage = image;
+      image.is_displayed = 1;
+      image.sort_id = cnt++;
+      newlist.push(image);
+    }
+    variant._productVariantImage_list.forEach(function(tmpImage) {
+      if (tmpImage != image) {
+        tmpImage.sort_id = cnt++;
+        newlist.push(tmpImage);
+      }
+    });
+    variant._productVariantImage_list = newlist;
+
+    saveProductImageOrderAndIsDisplayed(variant);
+  }
+
+  ctrl.doSelectImage = function(variant, image) {
+    variant._selectedImage = image;
+  }
+
+
+  function saveProductImageOrderAndIsDisplayed(variant) {
+    console.log('saveProductImageOrderAndIsDisplayed()');
+
+    // Prepare the list with the image order and whether they are displayed
+    var params = {
+      product_variant_id: variant.product_variant_id,
+      images: [ ]
+    };
+    variant._productVariantImage_list.forEach(function(image) {
+      params.images.push({
+        product_variant_image_id: image.product_variant_image_id,
+        is_displayed: image.is_displayed
+      });
+    });
+    console.log('params=', params);
+
+    // Call the server to do the update
+    var TEASERVICE_APIKEY = '12345';
+    var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/' + TEASERVICE_APIKEY + '/productImageOrder';
+    console.log('URL=' + url);
+    console.log('PARAMS=', params);
+    var req = {
+      method: 'POST',
+      url: url,
+      headers: {
+        "access-token": "0613952f81da9b3d0c9e4e5fab123437",
+        "version": "2.0.0"
+      },
+      data: params
+    };
+    $http(req).then(function(response) {
+
+      console.log('Response is', response);
+    }, TEAServiceError);
+  }//- loadSpecTypesOptionsAndValuesForVariant
+
+
+  /*
+   *  Add a new pricing_quantity record to the pricing rule.
+   */
+  ctrl.addPricingQty = function(variant, pricing) {
+    var rec = {
+      pricing_id: pricing.pricing_id,
+      quantity: 2,
+      price: variant.last_price,
+      shared_sale_ok: 1,
+      multiple_addresses_ok: 1
+    };
+    // Work out a new qty/price
+    try {
+      pricing._pricingQty.forEach(function(pq) {
+        if (pq.price < rec.price) {
+          rec.price = pq.price;
+        }
+        if (parseInt(pq.quantity) > parseInt(rec.quantity)) {
+          rec.quantity = pq.quantity + 5;
+        }
+      });
+    } catch (e) {}
+    pricing._pricingQty.push(rec);
+  }
+
+  /*
+   *  Add a pricing record for 'quantity breakpoint' pricing.
+   */
+  ctrl.addPricing_BRKQTY = function(variant) {
+    var rec = {
+      /*allow_picked_up: 0,*/
+      /*amount: null,
+      amount_exceed: null,
+      */
+      code: '',
+      /*
+      created_at: null,
+      created_by: null,
+      description: null,
+      end_at: null,
+      item_scope: null,
+      modified_at: null,
+      modified_by: null
+      new_order_only: 0,*/
+      //pricing_id: 1,
+      //product_id: null,
+      product_variant_id: variant.product_variant_id,
+      quantity: 1,
+      //reserved: 0,
+      //role_id: null,
+      scope: "V",
+      //start_at: null,
+      status: "A",
+      store_id: STORE_ID,
+      type: "BRKQTY",
+      /*unlimited: 1,
+      used: 0,*/
+      _pricingQty: [ {
+        //pricing_id: pricing.pricing_id,
+        quantity: 2,
+        price: variant.last_price,
+        shared_sale_ok: 1,
+        multiple_addresses_ok: 1
+      } ],
+    };
+    console.log('new pricing record', rec);
+    variant._productPricing_list.push(rec);
+    // ctrl.productPricing_list.push(rec);
+  }
 
 
 

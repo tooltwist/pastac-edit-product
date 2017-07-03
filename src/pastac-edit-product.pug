@@ -9,80 +9,112 @@ block content
       .row
         .col-md-12
           .alert.alert-danger(ng-hide="!ctrl.errmsg") {{ctrl.errmsg}}
+          h1 {{ctrl.product.supplier_id__desc}}
           h2 {{ctrl.product.name}}
-          small
-            | {{ctrl.product.supplier.company_name}}
-            br
-            br
+          //- small
+          //-   | {{ctrl.product}}
+          .pull-right
+            |  &nbsp;&nbsp;&nbsp;
+            a.btn.btn-success(ng-click="ctrl.doSave()") Save
+          
+          a.product-button.pull-right(ng-hide="!ctrl.productButton" ng-click="ctrl.doProductButton(ctrl.product)") {{ctrl.productButton}}
+          
           ul.nav.nav-tabs
             li.active
               a(data-target="#tab-product-summary" data-toggle="tab") Summary
             li
               a(data-target="#tab-product-details" data-toggle="tab") Details
             li
-              a(data-target="#tab-product-descriptions" data-toggle="tab") Description
+              a(data-target="#tab-product-description" data-toggle="tab") Description
             li
-              a(data-target="#tab-product-notes" data-toggle="tab") Notes
-            li
-              a(data-target="#tab-product-metadata" data-toggle="tab") SEO
-            li
-              a(data-target="#tab-product-variants" data-toggle="tab") Variants
+              a(data-target="#tab-product-notes" data-toggle="tab") Tasting Notes
           br
-          .actions-wrap.hide.NOTYET
-            a.btn(ng-click="product_backButton()") Back to product list
-            a.btn(ng-click="productVariant_backButton()" ng-hide="productVariant_showList()") Back to variant list
-            a.btn.btn-success(ng-click="productSaveButton()") Save
+          //- .actions-wrap.hide.NOTYET
+          //-   a.btn(ng-click="product_backButton()") Back to product list
+          //-   a.btn(ng-click="productVariant_backButton()" ng-hide="productVariant_showList()") Back to variant list
+          //-   a.btn.btn-success(ng-click="productSaveButton()") Save
           //- actions-wrap
 
           .tab-content.clearfix
             // Product summary pane
             #tab-product-summary.tab-pane.active
-              label Product Categories
-              // See http://mbenford.github.io/ngTagsInput/documentation/api#tagsInput
-              tags-input(ng-model="ctrl.categoryTags" on-tag-added="ctrl.doAddCategory($tag)" on-tag-removed="ctrl.doRemoveCategory($tag)" add-from-autocomplete-only="true" placeholder="Add a category")
-                auto-complete(source="ctrl.loadCategoryTags($query)" min-length="1" max-results-to-show="20" load-on-empty="true" load-on-focus="false")
+
               //- br
               //- | {{ctrl.categoryTags}}
               //- br
               //- | {{ctrl.product.long_description}}
+              strong.inline Product Id:
+              | &nbsp; {{ctrl.product.product_id}}
+              | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              strong.inline Category:&nbsp;&nbsp;
+              span(ng-repeat="category in ctrl.categoryTags")
+                span(ng-hide="$index==0") ,&nbsp;
+                | {{category.text}}
+              | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              strong.inline Short Description:
+              | &nbsp; {{ctrl.product.short_description}}
+              br
+              br
+              strong Description
+              div(ng-bind-html="ctrl.product.long_description")
+              //- strong Tasting notes
+              //- div(ng-bind-html="ctrl.product.notes")
+
               
               
 
             // Product details pane
             #tab-product-details.tab-pane
-              .form-group
-                label(for='product-id') Id
-                input#product-id.form-control(ng-model="ctrl.product.product_id" type='text', placeholder='Product Id', readonly='readonly')
-                br
+              .row
+                .col-md-6
+                  .form-group
 
-                label(for='product-name') Name
-                input#product-name.form-control(ng-model="ctrl.product.name" type='text', placeholder='Name')
-                br
+                    label(for='product-name') Name
+                    input#product-name.form-control(ng-model="ctrl.product.name" type='text', placeholder='Name')
 
-                label(for='product-categories') Categories
-                input#product-categories.form-control(ng-model="ctrl.product.categories" type='text', placeholder='categories')
-                br
+                  label Categories
+                  // See http://mbenford.github.io/ngTagsInput/documentation/api#tagsInput
+                  tags-input.product-categories(ng-model="ctrl.categoryTags" on-tag-added="ctrl.doAddCategory($tag)" on-tag-removed="ctrl.doRemoveCategory($tag)" add-from-autocomplete-only="true" placeholder="Add a category")
+                    auto-complete(source="ctrl.loadCategoryTags($query)" min-length="1" max-results-to-show="20" load-on-empty="true" load-on-focus="false")
 
-                label(for='product-popularity') Popularity
-                input#product-popularity.form-control(ng-model="ctrl.product.popularity" type='text', placeholder='')
-                br
+                    //- label(for='product-popularity') Popularity
+                    //- input#product-popularity.form-control(ng-model="ctrl.product.popularity" type='text', placeholder='')
+                    //- br
+                    //- 
+                    //- label(for='product-teaIdAtSource') TEA Id at source
+                    //- input#product-teaIdAtSource.form-control(ng-model="ctrl.product.teaIdAtSource" type='text', placeholder='teaIdAtSource')
+                    //- br
+                  .form-group
+                    label(for='product-shortDescription') Short Description
+                    input#product-shortDescription.form-control(ng-model="ctrl.product.short_description" type='text', placeholder='Will use product name')
+                    br
+                .col-md-6
+                  .form-group
+                    label(for='product-metaTitle') SEO Title
+                    input#product-metaTitle.form-control(ng-model="ctrl.product.metaTitle" type='text', placeholder='title meta tag')
+                    br
 
-                label(for='product-teaIdAtSource') TEA Id at source
-                input#product-teaIdAtSource.form-control(ng-model="ctrl.product.teaIdAtSource" type='text', placeholder='teaIdAtSource')
-                br
+                    label(for='product-metaDescription') SEO Description
+                    input#product-metaDescription.form-control(ng-model="ctrl.product.metaDescription" type='text', placeholder='description meta tag')
+                    br
 
-            // Metadata pane
-            #tab-product-descriptions.tab-pane
-              .form-group
-                label(for='product-shortDescription') Short Description
-                input#product-shortDescription.form-control(ng-model="ctrl.product.shortDescription" type='text', placeholder='')
-                br
+                    label(for='product-metaKeywords') SEO Keywords
+                    input#product-metaKeywords.form-control(ng-model="ctrl.product.metaKeywords" type='text', placeholder='keyword tags')
+                    br
 
-                label(for='product-longDescription') Long Description
-                //input#product-longDescription.form-control(ng-model="ctrl.product.long_description" type='text', placeholder='')
-                // See https://github.com/lemonde/angular-ckeditor
-                div(ckeditor="ckeditorOptions", ng-model="ctrl.product.long_description", ready="onReady()")
-                br
+                      
+
+            //
+            // Product details pane
+            //
+            #tab-product-description.tab-pane
+              .row
+                .col-md-12
+                    label(for='product-longDescription') Full Description
+                    //input#product-longDescription.form-control(ng-model="ctrl.product.long_description" type='text', placeholder='')
+                    // See https://github.com/lemonde/angular-ckeditor
+                    div(ckeditor="ckeditorOptions", ng-model="ctrl.product.long_description", ready="onReady()")
+                    br
                   
             // Metadata pane
             #tab-product-notes.tab-pane
@@ -93,140 +125,6 @@ block content
                 div(ckeditor="ckeditorOptions", ng-model="ctrl.product.notes", ready="onReady()")
                 br
 
-            // Metadata pane
-            #tab-product-metadata.tab-pane
-              h4 Metadata, used for SEO
-              .form-group
-                label(for='product-metaTitle') Title
-                input#product-metaTitle.form-control(ng-model="ctrl.product.metaTitle" type='text', placeholder='metaTitle')
-                br
-
-                label(for='product-metaDescription') Description
-                input#product-metaDescription.form-control(ng-model="ctrl.product.metaDescription" type='text', placeholder='')
-                br
-
-                label(for='product-metaKeywords') Keywords
-                input#product-metaKeywords.form-control(ng-model="ctrl.product.metaKeywords" type='text', placeholder='')
-                br
-
-            #tab-product-variants.tab-pane
-              
-              div(ng-hide=" !productVariant_showList()")
-                #productVariant_listDiv
-              div(ng-hide="productVariant_showList()")
-                h3
-                  | {{productVariant_headingForRecordPane}} &nbsp;&nbsp;&nbsp;&nbsp;(pack size {{productVariant_record.components_qty}})
-                ul.nav.nav-tabs
-                  li.active
-                    a(href="#tab-productVariant-summary" data-toggle="tab") Summary
-                  li
-                    a(href="#tab-productVariant-details" data-toggle="tab") Details
-                  li
-                    a(href="#tab-productVariant-pricing" data-toggle="tab") Pricing
-                  li
-                    a(href="#tab-productVariant-images" data-toggle="tab") Images
-                  li
-                    a(href="#tab-productVariant-notes" data-toggle="tab") Notes
-                  li
-                    a(href="#tab-productVariant-specs" data-toggle="tab" ng-hide="!haveCurrentVariant()") Specs
-                  //li
-                  //  a(href="#tab-productVariant-related" data-toggle="tab" ng-hide="!haveCurrentVariant()") Related
-                  //li
-                  //  a(href="#tab-productVariant-supplier" data-toggle="tab" ng-hide="!haveCurrentVariant()") Supplier
-
-                .tab-content.clearfix
-
-                  #tab-productVariant-summary.tab-pane.active
-                    br
-                    #productVariant_summaryDiv
-
-                  #tab-productVariant-details.tab-pane
-                    br
-                    h4 Details
-
-                  #tab-productVariant-pricing.tab-pane
-
-                    //h3 Basic Pricing
-                    br
-                    .form-group
-                      .checkbox
-                        label
-                          input(type="checkbox" ng-model="productVariant_record.is_free" ng-true-value="1" ng-false-value="0")
-                          | This product is free
-
-                    div(ng-hide="productVariant_record.is_free==1")
-                      .form-inline
-                        .form-group
-                          label(for='productVariant-basicPrice') Our price
-                          input#productVariant-basicPrice.form-control(ng-model="productVariant_record.last_price" type='text', placeholder='123.45')
-                          br
-                          //label(for='productVariant-wholesalePrice') Wholesale price
-                          //input#productVariant-wholesalePrice.form-control(ng-model="productVariant_record.wholesale_price" type='text', placeholder='123.45')
-                          label(for='productVariant-manufacturerPrice') Manufacturer price (RRP)
-                          input#productVariant-manufacturerPrice.form-control(ng-model="productVariant_record.manufacturer_price" type='text', placeholder='123.45')
-
-                      br
-                      br
-                      div(ng-if="productPricing_list.length == 0")
-                        .actions-wrap
-                          a.btn(ng-click="addPricing_BRKQTY()") Add quantity pricing
-                      div(ng-repeat="price in productPricing_list")
-                        div(ng-if="price.type == 'BRKQTY'")
-                          h3
-                            | Additional Rule - Break on Quantity
-                            small &nbsp;&nbsp;&nbsp;&nbsp;(\#{{price.pricing_id}})
-                          br
-                          table.table
-                            tr
-                              th &nbsp;&nbsp;Qty
-                              th &nbsp;&nbsp;Price
-                              th
-                                | Available for shared sale.
-                            tr(ng-repeat="pq in price._pricingQty")
-                              td
-                                input.form-control(ng-model="pq.quantity", type='number')
-                              td
-                                input.form-control(ng-model="pq.price", type='number')
-                              td.text-center
-                                .checkbox-inline
-                                  input(type="checkbox" ng-model="pq.shared_sale_ok" ng-true-value="1" ng-false-value="0")
-                          .actions-wrap
-                            a.btn(ng-click="addPricingQty(price)") Add another quantity
-                        div(ng-if="price.type == 'DSCAMT'")
-                          | Rule {{price.pricing_id}} - Discount by Amount
-                        div(ng-if="price.type == 'DSCPCT'")
-                          | Rule {{price.pricing_id}} - Discount by Percent
-
-                    //- Components qty
-                    //- 1
-                    //-
-                    //- Last price
-                    //- 50
-                    //-
-                    //- Wholesale price
-                    //- 0
-                    //-
-                    //- Is free
-
-
-                  #tab-productVariant-notes.tab-pane
-                    br
-                    #productVariant_notesDiv
-
-                  #tab-productVariant-related.tab-pane
-                    h3 related
-
-                  #tab-productVariant-specs.tab-pane
-                    br
-                    #productVariant_specsDiv
-
-                  #tab-productVariant-images.tab-pane
-                    br
-                    div(ng-repeat="image in productVariantImage_list")
-                      .col-md-4
-                        img.img-responsive.thumbnail(ng-src="{{image.image_path}}")
-                        hr
-
       //
       //  Now show the variants of this product
       //
@@ -234,6 +132,8 @@ block content
         .col-md-12
           hr
         .col-md-4
+          h3
+            | {{variant.manufacturer}}
           h4
             | {{variant.name}}
             br
@@ -243,8 +143,8 @@ block content
           //- br
           //- br
 
-          div(ng-repeat="image in variant._productVariantImage_list")
-            img.img-responsive.thumbnail.center-block(ng-src="{{image.image_path}}" style="max-height:250px;")
+          //- div(ng-repeat="image in variant._productVariantImage_list")
+          img.img-responsive.thumbnail.center-block(ng-if="variant._selectedImage" ng-src="{{variant._selectedImage._512x512}}" Zstyle="max-width:512px;max-height:512px;")
 
           
           
@@ -257,38 +157,92 @@ block content
           toggle(ng-hide="variant.is_deleted" ng-model="variant.is_approved" onstyle="btn-success" offstyle="btn-info" on="Active" off="Inactive" size="btn-sm").pull-right
           ul.nav.nav-tabs
             li.active
-              a(data-target="#pastac-edit-product-tab-summary" data-toggle="tab") Summary
+              a(data-target="#pastac-edit-product-tab-summary-{{variant.product_variant_id}}" data-toggle="tab") Summary
             li
-              a(data-target="#pastac-edit-product-tab-details" data-toggle="tab") Details
+              a(data-target="#pastac-edit-product-tab-details-{{variant.product_variant_id}}" data-toggle="tab") Details
             li
-              a(data-target="#pastac-edit-product-tab-pricing" data-toggle="tab") Pricing
+              a(data-target="#pastac-edit-product-tab-pricing-{{variant.product_variant_id}}" data-toggle="tab") Pricing
             li
-              a(data-target="#pastac-edit-product-tab-images" data-toggle="tab") Images
+              a(data-target="#pastac-edit-product-tab-images-{{variant.product_variant_id}}" data-toggle="tab") Images
             li
-              a(data-target="#pastac-edit-product-tab-notes" data-toggle="tab") Notes
-            li
-              a(data-target="#pastac-edit-product-tab-specs" data-toggle="tab") Specifications
+              a(data-target="#pastac-edit-product-tab-specs-{{variant.product_variant_id}}" data-toggle="tab") Specifications
+            //- li
+            //-   a(data-target="#pastac-edit-product-tab-notes-{{variant.product_variant_id}}" data-toggle="tab") Notes
             //li
-            //  a(data-target="#tab-productVariant-related" data-toggle="tab") Related
+            //  a(data-target="#pastac-edit-product-tab-related-{{variant.product_variant_id}}" data-toggle="tab") Related
             //li
-            //  a(data-target="#tab-productVariant-supplier" data-toggle="tab") Supplier
+            //  a(data-target="#pastac-edit-product-tab-supplier-{{variant.product_variant_id}}" data-toggle="tab") Supplier
 
           .tab-content.clearfix
 
-            #pastac-edit-product-tab-summary.tab-pane.active
+
+
+            //
+            //    Variant details pane
+            //
+            div(id="pastac-edit-product-tab-summary-{{variant.product_variant_id}}").tab-pane.active
               br
               .alert.alert-danger(ng-hide="!variant.is_deleted") This product has been deleted
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
-              #productVariant_summaryDiv
-                
-              .form-group(ng-disabled="variant.is_deleted")
-                label(for='product-metaTitle') Price
-                input#product-metaTitle.form-control(ng-model="variant.last_price" type='text', placeholder='Price')
-                br
 
-                label Pack size
-                input.form-control(ng-model="variant.components_qty" type='number', placeholder='')
+              a.variant-button.pull-right(ng-hide="!ctrl.variantButton" ng-click="ctrl.doVariantButton(ctrl.product,variant)") {{ctrl.variantButton}}
+              strong.inline Variant Id:
+              | &nbsp; {{variant.product_variant_id}}
+              | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              strong Pack size:
+              | &nbsp;&nbsp;{{variant.components_qty}}
+              | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+              br
+              br
+              
+              
+              p(ng-hide="!variant.is_free") This product is free
+
+              div(ng-hide="variant.is_free==1")
+                      
+                table.table-condensed.price-summary-table
+                  tr
+                    th.col1 Qty
+                    th Price
+                    th
+                  tr
+                    td.col1 1
+                    td {{variant.last_price}}
+                    td Our price
+                  tr
+                    td.col1 1
+                    td {{variant.manufacturer_price}}
+                    td Manufacturer price (RRP)
+
+
                 br
+                div(ng-repeat="price in variant._productPricing_list")
+                  div(ng-if="price.type == 'BRKQTY'")
+                    strong Volume Pricing
+                    sup &nbsp;&nbsp;&nbsp;(\#{{price.pricing_id}})
+                    br
+                    table.table-condensed.price-summary-table
+                      tr
+                        th.col1 &nbsp;&nbsp;Qty
+                        th &nbsp;&nbsp;Price
+                        th Available for shared sale.
+                      tr(ng-repeat="pq in price._pricingQty")
+                        td.col1 {{pq.quantity}}
+                        td {{pq.price}}
+                        td.text-center
+                          span(ng-hide="pq.shared_sale_ok") no
+                          span(ng-hide="!pq.shared_sale_ok") yes
+                  div(ng-if="price.type == 'DSCAMT'")
+                    | Rule {{price.pricing_id}} - Discount by Amount
+                  div(ng-if="price.type == 'DSCPCT'")
+                    | Rule {{price.pricing_id}} - Discount by Percent
+                  
+                  
+                  
+                  
+                  
 
                   //- "components_qty":12,
                   //- "last_price":269.28,
@@ -325,19 +279,92 @@ block content
                 
                 
                 
-
-            #pastac-edit-product-tab-details.tab-pane
+            //
+            //    Variant Details pane
+            //
+            div(id="pastac-edit-product-tab-details-{{variant.product_variant_id}}").tab-pane
               br
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
-              |  Details
-              #productVariant_detailsDiv
-                
-                
-                
-                
-                
 
-            #pastac-edit-product-tab-pricing.tab-pane
+              .row
+                .col-md-12
+                  .form-group
+                    label(for='product-metaTitle') Name
+                    input#product-metaTitle.form-control(ng-model="variant.name" type='text', placeholder='title meta tag')
+                    br
+              .row
+                .col-md-6
+                  .form-group
+                    label(for='product-metaKeywords') Quantity
+                    input#product-metaKeywords.form-control(ng-model="variant.quantity" type='number', placeholder='Quantity on hand')
+                    br
+
+                    label(for='product-metaTitle') Our SKU
+                    input#product-metaTitle.form-control(ng-model="variant.sku" type='text', placeholder='')
+                    br
+                      
+                    label(for='product-metaDescription') Manufacturer
+                    input#product-metaDescription.form-control(ng-model="variant.manufacturer" type='text', placeholder='')
+                    br
+                                            
+                    label(for='product-metaDescription') Manufacturer SKU
+                    input#product-metaDescription.form-control(ng-model="variant.manufacturer_sku" type='text', placeholder='')
+                    br
+
+                    label(for='product-metaKeywords') Supplier SKU
+                    input#product-metaKeywords.form-control(ng-model="variant.supplier_sku" type='text', placeholder='')
+                    br
+                .col-md-6
+                  .form-group
+                    
+                    label(for='product-metaKeywords') Barcode
+                    input#product-metaKeywords.form-control(ng-model="variant.barcode" type='text', placeholder='')
+                    br
+
+                    label(for='product-metaKeywords') Weight
+                    input#product-metaKeywords.form-control(ng-model="variant.weight" type='text', placeholder='kgs')
+                    br
+                    
+                    label(for='product-metaKeywords') Length
+                    input#product-metaKeywords.form-control(ng-model="variant.length" type='text', placeholder='')
+                    br
+                    label(for='product-metaKeywords') Height
+                    input#product-metaKeywords.form-control(ng-model="variant.height" type='text', placeholder='')
+                    br
+                    label(for='product-metaKeywords') Width
+                    input#product-metaKeywords.form-control(ng-model="variant.width" type='text', placeholder='')
+                    br
+                
+                
+                //- product_variant_id"
+                //- "is_deleted":false,
+
+                //- "wholesale_price":0,
+                //- "manufacturer_price":0,
+
+                //- "cost_price":null,
+
+                //- "tea_id_at_source":null,
+                //- "tags":null,
+
+                //- "is_featured_product":0,
+                //- "is_free":0,
+                //- "product_code":null,
+                //- "extra_properties":null,
+                //- "is_approved":1,
+                //- "from_date":null,
+                //- "to_date":null,
+                //- "notes":"...",
+
+                
+                
+                
+                
+                
+            //
+            //    Pricing pane
+            //
+            .tab-pane.pricing(id="pastac-edit-product-tab-pricing-{{variant.product_variant_id}}")
               br
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
               .alert.alert-danger(ng-hide="variant.is_deleted || !variant.is_free") Are you sure you really want the effort of shipping a product for free?
@@ -359,17 +386,24 @@ block content
                     td Manufacturer price (RRP)
                     td
                       input.form-control(ng-model="variant.manufacturer_price" type='text', placeholder='123.45')
+                  tr
+                    td Wholesale price
+                    td
+                      input.form-control(ng-model="variant.wholesale_price" type='text', placeholder='123.45')
 
 
                 br
-                br
+                // So what do we have here?
+                //  1. The variant contains a pricing table (_productPricing_list).
+                //    There are different types of pricing tables, but here we
+                //    only handle "Break on Quantity" (i.e. volume pricing).
+                //  2. The pricing list contains pricing_qty records.
                 div(ng-if="variant._productPricing_list.length == 0")
                   .actions-wrap
-                    a.btn(ng-click="addPricing_BRKQTY()") Add quantity pricing
+                    a.btn(ng-click="ctrl.addPricing_BRKQTY(variant)") Add quantity pricing
                 div(ng-repeat="price in variant._productPricing_list")
                   div(ng-if="price.type == 'BRKQTY'")
-                    h3
-                      | Additional Rule - Break on Quantity
+                    h4 Break on Quantity
                       small &nbsp;&nbsp;&nbsp;&nbsp;(\#{{price.pricing_id}})
                     br
                     table.table
@@ -387,38 +421,42 @@ block content
                           .checkbox-inline
                             input(type="checkbox" ng-model="pq.shared_sale_ok" ng-true-value="1" ng-false-value="0")
                     .actions-wrap
-                      a.btn(ng-click="addPricingQty(price)") Add another quantity
+                      a.btn(ng-click="ctrl.addPricingQty(variant, price)") Add another quantity
                   div(ng-if="price.type == 'DSCAMT'")
                     | Rule {{price.pricing_id}} - Discount by Amount
                   div(ng-if="price.type == 'DSCPCT'")
                     | Rule {{price.pricing_id}} - Discount by Percent
 
-              //- Components qty
-              //- 1
-              //-
-              //- Last price
-              //- 50
-              //-
-              //- Wholesale price
-              //- 0
-              //-
-              //- Is free
 
 
-            #pastac-edit-product-tab-notes.tab-pane
-              .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
-              br
-              #productVariant_notesDiv
-
-
-
-            #pastac-edit-product-tab-related.tab-pane
-              .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
-              h3 related
+            //
+            //    Notes pane
+            //
+            //- div(id="pastac-edit-product-tab-notes-{{variant.product_variant_id}}").tab-pane
+            //-   .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
+            //-   br
+            //-   #productVariant_notesDiv
+            //-   .form-group
+            //-     label(for='product-notes') Tasting Notes
+            //-     //input#product-notes.form-control(ng-model="variant.notes" type='text', placeholder='Will use product notes')
+            //-     // See https://github.com/lemonde/angular-ckeditor
+            //-     div(ckeditor="ckeditorOptions", ng-model="ctrl.product.notes", ready="onReady()")
+            //-     br
 
 
 
-            #pastac-edit-product-tab-specs.tab-pane
+            //
+            //    Related products pane
+            //
+            //- #pastac-edit-product-tab-related.tab-pane
+            //-   .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
+            //-   h3 related
+
+
+            //
+            //    Specs pane
+            //
+            .tab-pane.specs(id="pastac-edit-product-tab-specs-{{variant.product_variant_id}}")
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
               br
               .card(ng-repeat="category in variant._specTypesOptionsAndValues.categories")
@@ -454,22 +492,95 @@ block content
                 //- table
                 br
 
+                  
+            //
+            //    Images pane
+            //
+            div(id="pastac-edit-product-tab-images-{{variant.product_variant_id}}").tab-pane
+              div(ng-hide="variant.is_deleted || variant.is_approved")
+                br
+                .alert.alert-info Warning: This product will not be displayed on the site until it is switched to Active.
+                //.button(ngf-select="upload($file)" ng-model="file" name="file" ngf-pattern="'image/*'" ngf-accept="'image/*'" ngf-max-size="20MB" ngf-min-height="100" Zngf-resize="{width: 100, height: 100}")
+                //div(ngf-drop="uploadFiles($files)" class="drop-box" ngf-drag-over-class="'dragover'" ngf-multiple="true" ngf-pattern="'image/*,application/pdf'") DRAG
+                //br
 
-            #pastac-edit-product-tab-images.tab-pane
-              .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
+              .image-loader(Zng-hide="!isMyProfilePage()", id="postComposer")
+                .head
+                  a(href="#pastac-edit-product-tab-load-image", role="tab", data-toggle="tab")
+                    i.fa.fa-picture-o
+                    | Upload Image
+                //- head
+                .content
+                  
+                  .tab-pane#pastac-edit-product-tab-load-image(role="tabpanel")
+
+                    //.drop-photo(ngf-select="upload($file)" ngf-drop="uploadFiles($files)" class="drop-box" ngf-drag-over-class="'dragover'" ngf-multiple="false" ngf-pattern="'image/*,video/*'")
+                    .drop-photo.drop-box(ngf-select ngf-drop ng-model="ctrl.file" ngf-drag-over-class="'dragover'" ngf-multiple="false" ngf-pattern="'image/*,video/*'" Zng-hide="!ctrl.showDropArea()" ng-hide="ctrl.haveFile()")
+                      i.fa.fa-picture-o
+                      br
+                      span Select File
+                      span(ng-show="ctrl.dropAvailable") &nbsp;or Drop File
+                    //- drop-photo
+                    
+                    img.img-responsive(ngf-src="ctrl.file || '/assets/images/cleardot.png'" style="max-height: 400px")
+                    video(controls ngf-src="ctrl.file")
+                    #percentage
+                      #progress(ng-hide="!ctrl.showProgressBar()")
+                        .small.green
+                          br
+                          | Loading {{ctrl.filename}}
+                          | &nbsp;&nbsp;&nbsp; size={{ctrl.filesize}} bytes
+                          | &nbsp;&nbsp;&nbsp; ({{ctrl.getPercentage()}}% complete)
+                          br
+                          .progress(style="height: 10px;")
+                            .progress-bar.progress-bar-striped.active(role="progressbar" aria-valuenow="{{getPercentage()}}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( ctrl.getPercentage() + '%' ) }")
+                              .sr-only {{ctrl.getPercentage()}}% Complete (warning)
+                      #processing(ng-hide="!ctrl.showProcessing()")
+                        .small.green
+                          br
+                          i.fa.fa-refresh.fa-spin.fa-fw
+                          //  .sr-only Loading...
+                          | Processing image
+                  //- .tab-pane
+                //- .content
+
+                .controls(ng-hide="!ctrl.haveFile()")
+                  // The next line sets the height of the footer,
+                  // when all else is hidden
+                  a &nbsp;
+
+                  a.post(ng-click="ctrl.cancelPost()" ng-hide="!ctrl.haveFile()" ng-disabled="ctrl.showProgressBar() || ctrl.showProcessing()")
+                    i.fa.fa-remove
+                    | Cancel
+                  a.post(ng-click="ctrl.doUploadImage(variant, ctrl.file)" ng-hide="!ctrl.haveFile()" ng-disabled="ctrl.showProgressBar() || ctrl.showProcessing()")
+                    i.fa.fa-send-o
+                    | Upload
+                  //- a
+                //- controls
+
               br
-              div(ng-repeat="image in variant._productVariantImage_list")
-                .col-md-4
-                  img.img-responsive.thumbnail(ng-src="{{image.image_path}}")
+              .row
+                .col-md-3(ng-repeat="image in variant._productVariantImage_list")
+                  //- img.img-responsive.thumbnail(ng-src="{{image._thumbnail}}" ng-class="{disabled-product-image: image.is_displayed == '1'}")
+                  img.img-responsive.thumbnail.product-image(ng-src="{{image._thumbnail}}" ng-class="{'disabled-product-image': !image.is_displayed, 'selected-product-image': image == variant._selectedImage}" ng-click="ctrl.doSelectImage(variant,image)")
+                  a.pull-left(ng-hide="$index==0 || !image.is_displayed" ng-click="ctrl.doToggleIsDisplayed(variant, image)") visible
+                  a.pull-left(ng-hide="$index==0 || image.is_displayed"  ng-click="ctrl.doToggleIsDisplayed(variant, image)") hidden
+                  a.pull-right(ng-hide="$index==0" href="#" ng-click="ctrl.doSetAsDefaultProductImage(variant, image)") default
+                  .text-center
+                    small(ng-hide="$index!=0" href="#") this is the default image
+                  p.text-center(ng-hide="!image._size")
+                    | {{image._size}}
+                  //- br
+                  //- | {{image.is_displayed}} / {{image.sort_id}}
 
 
           //- form-group
         //- col-md-6
 
-      hr
-      .actions-wrap
-        a.btn(ng-click="product_backButton()") Back to product list
-        a.btn(ng-click="productVariant_backButton()" ng-hide="productVariant_showList()") Back to variant list
-        a.btn.btn-success(ng-click="productSaveButton()") Save
+      //- hr
+      //- .actions-wrap
+      //-   a.btn(ng-click="product_backButton()") Back to product list
+      //-   a.btn(ng-click="productVariant_backButton()" ng-hide="productVariant_showList()") Back to variant list
+      //-   a.btn.btn-success(ng-click="productSaveButton()") Save
       //- actions-wrap
     //- card
