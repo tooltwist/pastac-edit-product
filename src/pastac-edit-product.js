@@ -989,7 +989,6 @@ console.log('Set record:', ctrl.product);
   ctrl.doUploadImage = function(variant, file) {
      console.log('doUploadImage()');
 
-    //var url = 'http://localhost:4000/api/2.0/drinkpoint/element?authenticationToken=U0X11WJTRM1DWIC74N1MJBQP';
 
     // See https://github.com/danialfarid/ng-file-upload
     var url = '//' + TEASERVICE_HOST + ':' + TEASERVICE_PORT + '/v3/' + TEASERVICE_APIKEY + '/productImage';
