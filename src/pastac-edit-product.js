@@ -125,15 +125,15 @@ function PastacEditProductController($scope, $timeout, $http, $compile, Upload) 
        *  Save the product variants
        */
       (function saveNextVariant(index) {
-        if (index >= 1) {
-        // if (index >= ctrl.variants.length) {
+        // if (index >= 1) {
+        if (index >= ctrl.variants.length) {
           // Finished
           return;
         }
         var variant = ctrl.variants[index];
         console.log('Save variant ' + index + ':', variant);
-        alert('next variant')
-        saveNextVariant(index + 1);
+        // alert('next variant')
+        // saveNextVariant(index + 1);
     //return;
         TooltwistViews.save(ctrl.teaContext, VARIANT_METADATA, 'record', variant, function(err, reply) {
           console.log('save returned', err, reply);
@@ -539,6 +539,32 @@ console.log('Set record:', ctrl.product);
 
       console.log('product_variant data=', data);
       console.log('product_variant metadata=', metadata);
+
+      // If we have no variants, let's create the first right now.
+      if (ctrl.variants.length == 0) {
+        //alert('Creating initial variant for this product');
+        var variant = {
+          product_id: ctrl.product.product_id,
+          is_deleted: 0,
+          name: ctrl.product.name,
+          components_qty: 1,
+          is_featured_product: 0,
+          is_free: 0,
+          is_approved: 0
+        };
+        TooltwistViews.save(ctrl.teaContext, VARIANT_METADATA, 'record', ctrl.product, function(err, reply) {
+          console.log('save returned', err, reply);
+          if (err) {
+            console.log('Error saving view ' + VARIANT_METADATA + '/record', err);
+            return;
+          }
+          variant.product_variant_id = reply.data.newId;
+          ctrl.variants = [ variant ];
+          variant._productVariantImage_list = [ ];
+          variant._productPricing_list = [ ];
+          loadSpecTypesOptionsAndValuesForVariant($http, context, variant)
+        });
+      }
 
 
       // Provide style options for displaying the list and record.
@@ -970,30 +996,6 @@ console.log('Set record:', ctrl.product);
     var data = {
       product_variant_id: variant.product_variant_id
     };
-    console.log('URL=' + url);
-    console.log('PARAMS=', data);
-    //  var req = {
-    //    method: 'GET',
-    //    url: url,
-    //    headers: {
-    //      "access-token": "0613952f81da9b3d0c9e4e5fab123437",
-    //      "version": "2.0.0"
-    //    },
-    //    data: params
-    //  };
-    //  $http(req).then(function(response) {
-
-
-     //var message = $scope.message;
-    //  var data = {
-    //    "type" : "post",
-    //    "rootId" : "$community-page-user-"+userId,
-    //    "parentId" : "$community-page-user-"+userId,
-    //    "description" : message,
-    //    //"anchor" : 'community-page-post-'+userId,
-    //    "deleted" : 0
-    //  };
-
     console.log('url is ' + url);
     console.log('data is ', data);
     console.log('file is ', file);

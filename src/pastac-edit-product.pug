@@ -86,7 +86,7 @@ block content
                     //- br
                   .form-group
                     label(for='product-shortDescription') Short Description
-                    input#product-shortDescription.form-control(ng-model="ctrl.product.short_description" type='text', placeholder='Will use product name')
+                    input#product-shortDescription.form-control(ng-model="ctrl.product.short_description" type='text', placeholder='Will use product name if empty')
                     br
                 .col-md-6
                   .form-group
@@ -163,9 +163,9 @@ block content
             li
               a(data-target="#pastac-edit-product-tab-pricing-{{variant.product_variant_id}}" data-toggle="tab") Pricing
             li
-              a(data-target="#pastac-edit-product-tab-images-{{variant.product_variant_id}}" data-toggle="tab") Images
-            li
               a(data-target="#pastac-edit-product-tab-specs-{{variant.product_variant_id}}" data-toggle="tab") Specifications
+            li
+              a(data-target="#pastac-edit-product-tab-images-{{variant.product_variant_id}}" data-toggle="tab") Images
             //- li
             //-   a(data-target="#pastac-edit-product-tab-notes-{{variant.product_variant_id}}" data-toggle="tab") Notes
             //li
@@ -287,15 +287,23 @@ block content
               .alert.alert-info(ng-hide="variant.is_deleted || variant.is_approved") Warning: This product will not be displayed on the site until it is switched to Active.
 
               .row
-                .col-md-12
+                .col-md-6
                   .form-group
                     label(for='product-metaTitle') Name
                     input#product-metaTitle.form-control(ng-model="variant.name" type='text', placeholder='title meta tag')
                     br
+                    br
+                .col-md-6
+                  .form-group
+                    label(for='product-metaKeywords') Pack Size
+                    input#product-metaKeywords.form-control(ng-model="variant.components_qty" type='number', placeholder='Pack size')
+                    br
+                    br
               .row
                 .col-md-6
                   .form-group
-                    label(for='product-metaKeywords') Quantity
+
+                    label(for='product-metaKeywords') Quantity on hand
                     input#product-metaKeywords.form-control(ng-model="variant.quantity" type='number', placeholder='Quantity on hand')
                     br
 
