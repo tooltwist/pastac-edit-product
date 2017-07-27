@@ -1,0 +1,368 @@
+
+<div class="pastac-edit-product">
+  <div class="alert alert-warning" ng-hide="ctrl.product">Unknown product</div>
+  <!-- Pane for single record-->
+  <div class="card" ng-hide="!ctrl.product">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="alert alert-danger" ng-hide="!ctrl.errmsg">{{ctrl.errmsg}}</div>
+        <h1>{{ctrl.product.supplier_id__desc}}</h1>
+        <h2>{{ctrl.product.name}}</h2>
+        <div class="pull-right"> &nbsp;&nbsp;&nbsp;<a class="btn btn-success" ng-click="ctrl.doSave()">Save</a></div><a class="product-button pull-right" ng-hide="!ctrl.productButton" ng-click="ctrl.doProductButton(ctrl.product)">{{ctrl.productButton}}</a>
+        <ul class="nav nav-tabs">
+          <li class="active"><a data-target="#tab-product-summary" data-toggle="tab">Summary</a></li>
+          <li><a data-target="#tab-product-details" data-toggle="tab">Details</a></li>
+          <li><a data-target="#tab-product-description" data-toggle="tab">Description</a></li>
+          <li><a data-target="#tab-product-notes" data-toggle="tab">Tasting Notes</a></li>
+        </ul><br>
+        <div class="tab-content clearfix">
+          <!-- Product summary pane-->
+          <div class="tab-pane active" id="tab-product-summary"><strong class="inline">Product Id:</strong>&nbsp; {{ctrl.product.product_id}}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong class="inline">Category:&nbsp;&nbsp;</strong><span ng-repeat="category in ctrl.categoryTags"><span ng-hide="$index==0">,&nbsp;</span>{{category.text}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong class="inline">Short Description:</strong>&nbsp; {{ctrl.product.short_description}}<br><br><strong>Description</strong>
+            <div ng-bind-html="ctrl.product.long_description"></div>
+          </div>
+          <!-- Product details pane-->
+          <div class="tab-pane" id="tab-product-details">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-name">Name</label>
+                  <input class="form-control" id="product-name" ng-model="ctrl.product.name" type="text" placeholder="Name">
+                </div>
+                <label>Categories</label>
+                <!-- See http://mbenford.github.io/ngTagsInput/documentation/api#tagsInput-->
+                <tags-input class="product-categories" ng-model="ctrl.categoryTags" on-tag-added="ctrl.doAddCategory($tag)" on-tag-removed="ctrl.doRemoveCategory($tag)" add-from-autocomplete-only="true" placeholder="Add a category">
+                  <auto-complete source="ctrl.loadCategoryTags($query)" min-length="1" max-results-to-show="20" load-on-empty="true" load-on-focus="false"></auto-complete>
+                </tags-input>
+                <div class="form-group">
+                  <label for="product-shortDescription">Short Description</label>
+                  <input class="form-control" id="product-shortDescription" ng-model="ctrl.product.short_description" type="text" placeholder="Will use product name if empty"><br>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-metaTitle">SEO Title</label>
+                  <input class="form-control" id="product-metaTitle" ng-model="ctrl.product.metaTitle" type="text" placeholder="title meta tag"><br>
+                  <label for="product-metaDescription">SEO Description</label>
+                  <input class="form-control" id="product-metaDescription" ng-model="ctrl.product.metaDescription" type="text" placeholder="description meta tag"><br>
+                  <label for="product-metaKeywords">SEO Keywords</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="ctrl.product.metaKeywords" type="text" placeholder="keyword tags"><br>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <!-- Product details pane-->
+          <!---->
+          <div class="tab-pane" id="tab-product-description">
+            <div class="row">
+              <div class="col-md-12">
+                <label for="product-longDescription">Full Description</label>
+                <!--input#product-longDescription.form-control(ng-model="ctrl.product.long_description" type='text', placeholder='')-->
+                <!-- See https://github.com/lemonde/angular-ckeditor-->
+                <div ckeditor="ckeditorOptions" ng-model="ctrl.product.long_description" ready="onReady()"></div><br>
+              </div>
+            </div>
+          </div>
+          <!-- Metadata pane-->
+          <div class="tab-pane" id="tab-product-notes">
+            <div class="form-group">
+              <label for="product-notes">Tasting Notes</label>
+              <!--input#product-notes.form-control(ng-model="ctrl.product.notes" type='text', placeholder='Enter notes here')-->
+              <!-- See https://github.com/lemonde/angular-ckeditor-->
+              <div ckeditor="ckeditorOptions" ng-model="ctrl.product.notes" ready="onReady()"></div><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!---->
+    <!--  Now show the variants of this product-->
+    <!---->
+    <div class="row" ng-repeat="variant in ctrl.variants">
+      <div class="col-md-12">
+        <hr>
+      </div>
+      <div class="col-md-4">
+        <h3>{{variant.manufacturer}}</h3>
+        <h4>{{variant.name}}<br>pack size {{variant.components_qty}}</h4><img class="img-responsive thumbnail center-block" ng-if="variant._selectedImage" ng-src="{{variant._selectedImage._512x512}}" Zstyle="max-width:512px;max-height:512px;">
+      </div>
+      <div class="col-md-8">
+        <button class="btn danger pull-right" ng-hide="!variant.is_deleted">Deleted</button>
+        <!-- See http://ziscloud.github.io/angular-bootstrap-toggle/-->
+        <toggle class="pull-right" ng-hide="variant.is_deleted" ng-model="variant.is_approved" onstyle="btn-success" offstyle="btn-info" on="Active" off="Inactive" size="btn-sm"></toggle>
+        <ul class="nav nav-tabs">
+          <li class="active"><a data-target="#pastac-edit-product-tab-summary-{{variant.product_variant_id}}" data-toggle="tab">Summary</a></li>
+          <li><a data-target="#pastac-edit-product-tab-details-{{variant.product_variant_id}}" data-toggle="tab">Details</a></li>
+          <li><a data-target="#pastac-edit-product-tab-pricing-{{variant.product_variant_id}}" data-toggle="tab">Pricing</a></li>
+          <li><a data-target="#pastac-edit-product-tab-specs-{{variant.product_variant_id}}" data-toggle="tab">Specifications</a></li>
+          <li><a data-target="#pastac-edit-product-tab-images-{{variant.product_variant_id}}" data-toggle="tab">Images</a></li>
+          <!--li-->
+          <!--  a(data-target="#pastac-edit-product-tab-related-{{variant.product_variant_id}}" data-toggle="tab") Related-->
+          <!--li-->
+          <!--  a(data-target="#pastac-edit-product-tab-supplier-{{variant.product_variant_id}}" data-toggle="tab") Supplier-->
+        </ul>
+        <div class="tab-content clearfix">
+          <!---->
+          <!--    Variant details pane-->
+          <!---->
+          <div class="tab-pane active" id="pastac-edit-product-tab-summary-{{variant.product_variant_id}}"><br>
+            <div class="alert alert-danger" ng-hide="!variant.is_deleted">This product has been deleted</div>
+            <div class="alert alert-info" ng-hide="variant.is_deleted || variant.is_approved">Warning: This product will not be displayed on the site until it is switched to Active.</div><a class="variant-button pull-right" ng-hide="!ctrl.variantButton" ng-click="ctrl.doVariantButton(ctrl.product,variant)">{{ctrl.variantButton}}</a><strong class="inline">Variant Id:</strong>&nbsp; {{variant.product_variant_id}}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Pack size:</strong>&nbsp;&nbsp;{{variant.components_qty}}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br><br>
+            <p ng-hide="!variant.is_free">This product is free</p>
+            <div ng-hide="variant.is_free==1">
+              <table class="table-condensed price-summary-table">
+                <tr>
+                  <th class="col1">Qty</th>
+                  <th>Price</th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <td class="col1">1</td>
+                  <td>{{variant.last_price}}</td>
+                  <td>Our price</td>
+                </tr>
+                <tr>
+                  <td class="col1">1</td>
+                  <td>{{variant.manufacturer_price}}</td>
+                  <td>Manufacturer price (RRP)</td>
+                </tr>
+              </table><br>
+              <div ng-repeat="price in variant._productPricing_list">
+                <div ng-if="price.type == 'BRKQTY'"><strong>Volume Pricing</strong><sup>&nbsp;&nbsp;&nbsp;(#{{price.pricing_id}})</sup><br>
+                  <table class="table-condensed price-summary-table">
+                    <tr>
+                      <th class="col1">&nbsp;&nbsp;Qty</th>
+                      <th>&nbsp;&nbsp;Price</th>
+                      <th>Available for shared sale.</th>
+                    </tr>
+                    <tr ng-repeat="pq in price._pricingQty">
+                      <td class="col1">{{pq.quantity}}</td>
+                      <td>{{pq.price}}</td>
+                      <td class="text-center"><span ng-hide="pq.shared_sale_ok">no</span><span ng-hide="!pq.shared_sale_ok">yes</span></td>
+                    </tr>
+                  </table>
+                </div>
+                <div ng-if="price.type == 'DSCAMT'">Rule {{price.pricing_id}} - Discount by Amount</div>
+                <div ng-if="price.type == 'DSCPCT'">Rule {{price.pricing_id}} - Discount by Percent</div>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <!--    Variant Details pane-->
+          <!---->
+          <div class="tab-pane" id="pastac-edit-product-tab-details-{{variant.product_variant_id}}"><br>
+            <div class="alert alert-info" ng-hide="variant.is_deleted || variant.is_approved">Warning: This product will not be displayed on the site until it is switched to Active.</div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-metaTitle">Name</label>
+                  <input class="form-control" id="product-metaTitle" ng-model="variant.name" type="text" placeholder="title meta tag"><br><br>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-metaKeywords">Pack Size</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.components_qty" type="number" placeholder="Pack size"><br><br>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-metaKeywords">Quantity on hand</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.quantity" type="number" placeholder="Quantity on hand"><br>
+                  <label for="product-metaTitle">Our SKU</label>
+                  <input class="form-control" id="product-metaTitle" ng-model="variant.sku" type="text" placeholder=""><br>
+                  <label for="product-metaDescription">Manufacturer</label>
+                  <input class="form-control" id="product-metaDescription" ng-model="variant.manufacturer" type="text" placeholder=""><br>
+                  <label for="product-metaDescription">Manufacturer SKU</label>
+                  <input class="form-control" id="product-metaDescription" ng-model="variant.manufacturer_sku" type="text" placeholder=""><br>
+                  <label for="product-metaKeywords">Supplier SKU</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.supplier_sku" type="text" placeholder=""><br>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="product-metaKeywords">Barcode</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.barcode" type="text" placeholder=""><br>
+                  <label for="product-metaKeywords">Weight</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.weight" type="text" placeholder="kgs"><br>
+                  <label for="product-metaKeywords">Length</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.length" type="text" placeholder=""><br>
+                  <label for="product-metaKeywords">Height</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.height" type="text" placeholder=""><br>
+                  <label for="product-metaKeywords">Width</label>
+                  <input class="form-control" id="product-metaKeywords" ng-model="variant.width" type="text" placeholder=""><br>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <!--    Pricing pane-->
+          <!---->
+          <div class="tab-pane pricing" id="pastac-edit-product-tab-pricing-{{variant.product_variant_id}}"><br>
+            <div class="alert alert-info" ng-hide="variant.is_deleted || variant.is_approved">Warning: This product will not be displayed on the site until it is switched to Active.</div>
+            <div class="alert alert-danger" ng-hide="variant.is_deleted || !variant.is_free">Are you sure you really want the effort of shipping a product for free?</div>
+            <div class="form-group">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" ng-model="variant.is_free" ng-true-value="1" ng-false-value="0">This product is free
+                </label>
+              </div>
+            </div>
+            <div ng-hide="variant.is_free==1">
+              <table class="table-condensed">
+                <tr>
+                  <td>Our price</td>
+                  <td> 
+                    <input class="form-control" ng-model="variant.last_price" type="text" placeholder="123.45">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Manufacturer price (RRP)</td>
+                  <td>
+                    <input class="form-control" ng-model="variant.manufacturer_price" type="text" placeholder="123.45">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Wholesale price</td>
+                  <td>
+                    <input class="form-control" ng-model="variant.wholesale_price" type="text" placeholder="123.45">
+                  </td>
+                </tr>
+              </table><br>
+              <!-- So what do we have here?-->
+              <!--  1. The variant contains a pricing table (_productPricing_list).-->
+              <!--    There are different types of pricing tables, but here we-->
+              <!--    only handle "Break on Quantity" (i.e. volume pricing).-->
+              <!--  2. The pricing list contains pricing_qty records.-->
+              <div ng-if="variant._productPricing_list.length == 0">
+                <div class="actions-wrap"><a class="btn" ng-click="ctrl.addPricing_BRKQTY(variant)">Add quantity pricing</a></div>
+              </div>
+              <div ng-repeat="price in variant._productPricing_list">
+                <div ng-if="price.type == 'BRKQTY'">
+                  <h4>Break on Quantity<small>&nbsp;&nbsp;&nbsp;&nbsp;(#{{price.pricing_id}})</small></h4><br>
+                  <table class="table">
+                    <tr>
+                      <th>&nbsp;&nbsp;Qty</th>
+                      <th>&nbsp;&nbsp;Price</th>
+                      <th>Available for shared sale.</th>
+                    </tr>
+                    <tr ng-repeat="pq in price._pricingQty">
+                      <td>
+                        <input class="form-control" ng-model="pq.quantity" type="number">
+                      </td>
+                      <td>
+                        <input class="form-control" ng-model="pq.price" type="number">
+                      </td>
+                      <td class="text-center">
+                        <div class="checkbox-inline">
+                          <input type="checkbox" ng-model="pq.shared_sale_ok" ng-true-value="1" ng-false-value="0">
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                  <div class="actions-wrap"><a class="btn" ng-click="ctrl.addPricingQty(variant, price)">Add another quantity</a></div>
+                </div>
+                <div ng-if="price.type == 'DSCAMT'">Rule {{price.pricing_id}} - Discount by Amount</div>
+                <div ng-if="price.type == 'DSCPCT'">Rule {{price.pricing_id}} - Discount by Percent</div>
+              </div>
+            </div>
+          </div>
+          <!---->
+          <!--    Notes pane-->
+          <!---->
+          <!---->
+          <!--    Related products pane-->
+          <!---->
+          <!---->
+          <!--    Specs pane-->
+          <!---->
+          <div class="tab-pane specs" id="pastac-edit-product-tab-specs-{{variant.product_variant_id}}">
+            <div class="alert alert-info" ng-hide="variant.is_deleted || variant.is_approved">Warning: This product will not be displayed on the site until it is switched to Active.</div><br>
+            <div class="card" ng-repeat="category in variant._specTypesOptionsAndValues.categories">
+              <h4>Category: {{category.category_name}}</h4>
+              <table class="table-condensed pastac-edit-product-specification-table">
+                <tr ng-repeat="type in category.category_specification_types">
+                  <td>{{type.name}}<span ng-hide="!type.uom">&nbsp;({{type.uom}})</span></td>
+                  <td>
+                    <div ng-switch="type.data_type">
+                      <!-- Integer specification type-->
+                      <div ng-switch-when="INT">
+                        <input type="number" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }">
+                      </div>
+                      <!-- Decimal specification type-->
+                      <div ng-switch-when="DEC">
+                        <input type="number" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }">
+                      </div>
+                      <!-- text specification type-->
+                      <div ng-switch-when="TXT">
+                        <input type="text" ng-model="type._currentValue" ng-change="ctrl.doSetSpecificationValue(variant, category, type)" ng-model-options="{updateOn: 'default blur', debounce: {default: 750, blur: 0} }">
+                      </div>
+                      <!-- List of options-->
+                      <div ng-switch-when="OPT">
+                        <select ng-model="type._selectedOption" ng-options="option.value for option in type.options" ng-change="ctrl.doSelectSpecificationOption(variant, category, type)"></select>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table><br>
+            </div>
+          </div>
+          <!---->
+          <!--    Images pane-->
+          <!---->
+          <div class="tab-pane" id="pastac-edit-product-tab-images-{{variant.product_variant_id}}">
+            <div ng-hide="variant.is_deleted || variant.is_approved"><br>
+              <div class="alert alert-info">Warning: This product will not be displayed on the site until it is switched to Active.</div>
+              <!--.button(ngf-select="upload($file)" ng-model="file" name="file" ngf-pattern="'image/*'" ngf-accept="'image/*'" ngf-max-size="20MB" ngf-min-height="100" Zngf-resize="{width: 100, height: 100}")-->
+              <!--div(ngf-drop="uploadFiles($files)" class="drop-box" ngf-drag-over-class="'dragover'" ngf-multiple="true" ngf-pattern="'image/*,application/pdf'") DRAG-->
+              <!--br-->
+            </div>
+            <div class="image-loader" Zng-hide="!isMyProfilePage()" id="postComposer">
+              <div class="head"><a href="#pastac-edit-product-tab-load-image" role="tab" data-toggle="tab"><i class="fa fa-picture-o"></i>Upload Image</a></div>
+              <div class="content">
+                <div class="tab-pane" id="pastac-edit-product-tab-load-image" role="tabpanel">
+                  <!--.drop-photo(ngf-select="upload($file)" ngf-drop="uploadFiles($files)" class="drop-box" ngf-drag-over-class="'dragover'" ngf-multiple="false" ngf-pattern="'image/*,video/*'")-->
+                  <div class="drop-photo drop-box" ngf-select ngf-drop ng-model="ctrl.file" ngf-drag-over-class="'dragover'" ngf-multiple="false" ngf-pattern="'image/*,video/*'" Zng-hide="!ctrl.showDropArea()" ng-hide="ctrl.haveFile()"><i class="fa fa-picture-o"></i><br><span>Select File</span><span ng-show="ctrl.dropAvailable">&nbsp;or Drop File</span></div><img class="img-responsive" ngf-src="ctrl.file || '/assets/images/cleardot.png'" style="max-height: 400px;">
+                  <video controls ngf-src="ctrl.file"></video>
+                  <div id="percentage">
+                    <div id="progress" ng-hide="!ctrl.showProgressBar()">
+                      <div class="small green"><br>Loading {{ctrl.filename}}
+                        &nbsp;&nbsp;&nbsp; size={{ctrl.filesize}} bytes
+                        &nbsp;&nbsp;&nbsp; ({{ctrl.getPercentage()}}% complete)<br>
+                        <div class="progress" style="height: 10px;">
+                          <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{getPercentage()}}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( ctrl.getPercentage() + '%' ) }">
+                            <div class="sr-only">{{ctrl.getPercentage()}}% Complete (warning)</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="processing" ng-hide="!ctrl.showProcessing()">
+                      <div class="small green"><br><i class="fa fa-refresh fa-spin fa-fw"></i>
+                        <!--  .sr-only Loading...-->Processing image
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="controls" ng-hide="!ctrl.haveFile()">
+                <!-- The next line sets the height of the footer,-->
+                <!-- when all else is hidden--><a>&nbsp;</a><a class="post" ng-click="ctrl.cancelPost()" ng-hide="!ctrl.haveFile()" ng-disabled="ctrl.showProgressBar() || ctrl.showProcessing()"><i class="fa fa-remove"></i>Cancel</a><a class="post" ng-click="ctrl.doUploadImage(variant, ctrl.file)" ng-hide="!ctrl.haveFile()" ng-disabled="ctrl.showProgressBar() || ctrl.showProcessing()"><i class="fa fa-send-o"></i>Upload</a>
+              </div>
+            </div><br>
+            <div class="row">
+              <div class="col-md-3" ng-repeat="image in variant._productVariantImage_list"><img class="img-responsive thumbnail product-image" ng-src="{{image._thumbnail}}" ng-class="{'disabled-product-image': !image.is_displayed, 'selected-product-image': image == variant._selectedImage}" ng-click="ctrl.doSelectImage(variant,image)"><a class="pull-left" ng-hide="$index==0 || !image.is_displayed" ng-click="ctrl.doToggleIsDisplayed(variant, image)">visible</a><a class="pull-left" ng-hide="$index==0 || image.is_displayed" ng-click="ctrl.doToggleIsDisplayed(variant, image)">hidden</a><a class="pull-right" ng-hide="$index==0" href="#" ng-click="ctrl.doSetAsDefaultProductImage(variant, image)">default</a>
+                <div class="text-center"><small ng-hide="$index!=0" href="#">this is the default image</small></div>
+                <p class="text-center" ng-hide="!image._size">{{image._size}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
