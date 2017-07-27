@@ -1,3 +1,6 @@
 
 src/pastac-edit-product.js
 test/test-edit-product.html
+dist/pastac-edit-product.css
+dist/pastac-edit-product.js
+dist/pastac-edit-product.min.js
